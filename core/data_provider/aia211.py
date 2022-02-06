@@ -3,7 +3,10 @@ from __future__ import print_function, division
 import torch
 from torch.utils.data import Dataset
 import numpy as np
+import cv2
+import codecs
 from core.utils import preprocess
+
 
 
 class Norm(object):
@@ -24,7 +27,7 @@ class ToTensor(object):
         return torch.from_numpy(video_x).float()
 
 
-class mnist(Dataset):
+class aia211(Dataset):
 
     def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
         self.transform = transform
@@ -54,6 +57,5 @@ class mnist(Dataset):
 
         if self.transform:
             sample = preprocess.reshape_patch(sample, self.patch_size)
-            # print(sample.shape)
             sample = self.transform(sample)
         return sample

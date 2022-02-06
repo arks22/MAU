@@ -1,2 +1,7 @@
 data/
 results/
+pretrained models/
+__pycache__/
+logs/
+
+

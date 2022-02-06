@@ -1,5 +1,7 @@
 import os.path
 import cv2
+import glob
+import math
 import numpy as np
 from skimage.metrics import structural_similarity as compare_ssim
 from core.utils import preprocess
@@ -11,17 +13,18 @@ import lpips
 def train(model, ims, real_input_flag, configs, itr):
     _, loss_l1, loss_l2 = model.train(ims, real_input_flag, itr)
     if itr % configs.display_interval == 0:
-        print('itr: ' + str(itr),
-              'training L1 loss: ' + str(loss_l1), 'training L2 loss: ' + str(loss_l2))
+        print('itr: ' + str(itr), 'training L1 loss: ' + str(loss_l1), 'training L2 loss: ' + str(loss_l2),end="")
 
 
 def test(model, test_input_handle, configs, itr):
     print('test...')
+
     loss_fn = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
-    res_path = configs.gen_frm_dir + '/' + str(itr)
+    res_path = os.path.join(configs.gen_frm_dir, str(itr))
 
     if not os.path.exists(res_path):
         os.mkdir(res_path)
+
     f = codecs.open(res_path + '/performance.txt', 'w+')
     f.truncate()
 
@@ -31,6 +34,7 @@ def test(model, test_input_handle, configs, itr):
     avg_lpips = 0
     batch_id = 0
     img_mse, img_psnr, ssim, img_lpips, mse_list, psnr_list, ssim_list, lpips_list = [], [], [], [], [], [], [], []
+
     for i in range(configs.total_length - configs.input_length):
         img_mse.append(0)
         img_psnr.append(0)
@@ -41,13 +45,14 @@ def test(model, test_input_handle, configs, itr):
         psnr_list.append(0)
         ssim_list.append(0)
         lpips_list.append(0)
+
     for epoch in range(configs.max_epoches):
         if batch_id > configs.num_save_samples:
             break
         for data in test_input_handle:
             if batch_id > configs.num_save_samples:
                 break
-            print(batch_id)
+            #print(batch_id)
 
             batch_size = data.shape[0]
             real_input_flag = np.zeros(
@@ -103,7 +108,7 @@ def test(model, test_input_handle, configs, itr):
                 avg_lpips += lpips_score
                 score = 0
                 for b in range(batch_size):
-                    score += compare_ssim(x[b, :], gx[b, :], multichannel=True)
+                    score += compare_ssim(x[b, :], gx[b, :], channel_axis = -1)
                 score /= batch_size
                 ssim[i] += score
                 ssim_list = score
@@ -127,35 +132,56 @@ def test(model, test_input_handle, configs, itr):
             cv2.imwrite(file_name, (img * 255).astype(np.uint8))
             batch_id = batch_id + 1
     f.close()
+
     with codecs.open(res_path + '/data.txt', 'w+') as data_write:
         data_write.truncate()
         avg_mse = avg_mse / (batch_id * output_length)
-        print('mse per frame: ' + str(avg_mse))
+        print('----------------------------------------------------------------------------------------------------')
+        print('|  *MSE   |   per frame: ' + str(avg_mse))
+        print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
         for i in range(configs.total_length - configs.input_length):
-            print(img_mse[i] / batch_id)
+            digits = math.floor(math.log10(img_mse[i] / batch_id))
+            print('|  ' + str(round(img_mse[i] / batch_id, 4 - digits)).ljust(6,'0') + ' ', end='')
             img_mse[i] = img_mse[i] / batch_id
+        print('|')
+
         data_write.writelines(str(avg_mse) + '\n')
         data_write.writelines(str(img_mse) + '\n')
         avg_psnr = avg_psnr / (batch_id * output_length)
-        print('psnr per frame: ' + str(avg_psnr))
+        print('----------------------------------------------------------------------------------------------------')
+        print('|  *PSNR  |  per frame: ' + str(avg_psnr))
+        print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
         for i in range(configs.total_length - configs.input_length):
-            print(img_psnr[i] / batch_id)
+            digits = math.floor(math.log10(img_psnr[i] / batch_id))
+            print('|  ' + str(round(img_psnr[i] / batch_id, 4 - digits)).ljust(6,'0') + ' ', end='')
             img_psnr[i] = img_psnr[i] / batch_id
+        print('|')
+
         data_write.writelines(str(avg_psnr) + '\n')
         data_write.writelines(str(img_psnr) + '\n')
 
         avg_ssim = avg_ssim / (batch_id * output_length)
-        print('ssim per frame: ' + str(avg_ssim))
+        print('----------------------------------------------------------------------------------------------------')
+        print('|  *SSIM  |  per frame: ' + str(avg_ssim))
+        print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
         for i in range(configs.total_length - configs.input_length):
-            print(ssim[i] / batch_id)
+            print('| ' + str(round(ssim[i] / batch_id, 5)).ljust(7,'0') + ' ', end='')
             ssim[i] = ssim[i] / batch_id
+        print('|')
+
         data_write.writelines(str(avg_ssim) + '\n')
         data_write.writelines(str(ssim) + '\n')
 
         avg_lpips = avg_lpips / (batch_id * output_length)
-        print('lpips per frame: ' + str(avg_lpips))
+        print('----------------------------------------------------------------------------------------------------')
+        print('| *LPIPS  |  per frame: ' + str(avg_lpips))
+        print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
         for i in range(configs.total_length - configs.input_length):
-            print(img_lpips[i] / batch_id)
+            digits = math.floor(math.log10(img_lpips[i] / batch_id))
+            print('|  ' + str(round(img_lpips[i] / batch_id, 4 - digits)).ljust(6,'0') + ' ', end='')
             img_lpips[i] = img_lpips[i] / batch_id
+        print('|')
+        print('----------------------------------------------------------------------------------------------------')
+
         data_write.writelines(str(avg_lpips) + '\n')
         data_write.writelines(str(img_lpips) + '\n')

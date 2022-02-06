@@ -10,20 +10,26 @@ pynvml.nvmlInit()
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='MAU')
 parser.add_argument('--dataset', type=str, default='kitti')
+parser.add_argument('--config', type=str, default='')
+
 args_main = parser.parse_args()
 args_main.tied = True
-if args_main.dataset == 'mnist':
+
+if args_main.config == 'mnist':
     from configs.mnist_configs import configs
-elif args_main.dataset == 'kitti':
+elif args_main.config == 'kitti':
     from configs.kitti_configs import configs
-elif args_main.dataset == 'town':
+elif args_main.config == 'town':
     from configs.town_configs import configs
+elif args_main.config == 'aia211_1':
+    from configs.aia211_1_configs import configs
+elif args_main.config == 'aia211_5':
+    from configs.aia211_5_configs import configs
 
 parser = configs()
-parser.add_argument('--device', type=str, default='cpu')
+parser.add_argument('--device', type=str, default='cuda')
 args = parser.parse_args()
 args.tied = True
-
 
 
 def schedule_sampling(eta, itr, channel, batch_size):
@@ -39,7 +45,7 @@ def schedule_sampling(eta, itr, channel, batch_size):
         eta -= args.sampling_changing_rate
     else:
         eta = 0.0
-    print('eta: ', eta)
+    #print('eta: ', eta)
     random_flip = np.random.random_sample(
         (batch_size, args.total_length - args.input_length - 1))
     true_token = (random_flip < eta)
@@ -82,6 +88,7 @@ def train_wrapper(model):
                                                         batch_size=args.batch_size,
                                                         is_training=True,
                                                         is_shuffle=True)
+
     val_input_handle = datasets_factory.data_provider(configs=args,
                                                       data_train_path=args.data_train_path,
                                                       dataset=args.dataset,
@@ -89,10 +96,23 @@ def train_wrapper(model):
                                                       batch_size=args.batch_size,
                                                       is_training=False,
                                                       is_shuffle=True)
+
+    save_dirs = glob.glob(configs.save_dir + '/*')
+    dirs = list(map(lambda d: int(os.path.basename(d)), save_dirs))
+    dirs.sort()
+    last_dir =  str(dirs[-1] + 1)
+
+    configs.save_dir    = os.path.join(configs.save_dir,    last_dir)
+    configs.gen_frm_dir = os.path.join(configs.gen_frm_dir, last_dir)
+    os.mkdir(configs.save_dir)
+    os.mkdir(configs.gen_frm_dir)
+
     eta = args.sampling_start_value
     eta -= (begin * args.sampling_changing_rate)
     itr = begin
     # real_input_flag = {}
+
+    #Train
     for epoch in range(0, args.max_epoches):
         if itr > args.max_iterations:
             break
@@ -102,7 +122,7 @@ def train_wrapper(model):
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr, args.img_channel, batch_size)
             if itr % args.test_interval == 0:
-                print('Validate:')
+                print('\nValidate:')
                 trainer.test(model, val_input_handle, args, itr)
             trainer.train(model, ims, real_input_flag, args, itr)
             if itr % args.snapshot_interval == 0 and itr > begin:
@@ -110,7 +130,7 @@ def train_wrapper(model):
             itr += 1
 
             meminfo_end = pynvml.nvmlDeviceGetMemoryInfo(handle)
-            print("GPU memory:%dM" % ((meminfo_end.used - meminfo_begin.used) / (1024 ** 2)))
+            print("\rGPU memory:%dM | " % ((meminfo_end.used - meminfo_begin.used) / (1024 ** 2)),end='')
 
 
 def test_wrapper(model):

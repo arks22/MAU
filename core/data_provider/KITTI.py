@@ -20,7 +20,6 @@ class Norm(object):
 
 
 class ToTensor(object):
-
     def __call__(self, sample):
         video_x = sample
         video_x = video_x.transpose((0, 3, 1, 2))

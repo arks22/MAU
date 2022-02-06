@@ -1,4 +1,5 @@
 import os
+import glob
 import torch
 import torch.nn as nn
 from torch.optim import Adam
@@ -25,22 +26,26 @@ class Model(object):
         else:
             raise ValueError('Name of network unknown %s' % configs.model_name)
         # print("Network state:")
-        # for param_tensor in self.network.state_dict():  # 字典的遍历默认是遍历 key，所以param_tensor实际上是键值
+        # for param_tensor in self.network.state_dict(): 
         #     print(param_tensor, '\t', self.network.state_dict()[param_tensor].size())
         self.optimizer = Adam(self.network.parameters(), lr=configs.lr)
         self.MSE_criterion = nn.MSELoss()
         self.L1_loss = nn.L1Loss()
 
+
     def save(self, itr):
         stats = {'net_param': self.network.state_dict()}
-        checkpoint_path = os.path.join(self.configs.save_dir, 'model.ckpt' + '-' + str(itr))
+
+        checkpoint_path = os.path.join(configs.save_dir, 'model.ckpt' + '-' + str(itr))
         torch.save(stats, checkpoint_path)
-        print("save predictive model to %s" % checkpoint_path)
+        print("\nsave predictive model to %s" % checkpoint_path)
+
 
     def load(self, pm_checkpoint_path):
         print('load predictive model:', pm_checkpoint_path)
         stats = torch.load(pm_checkpoint_path, map_location=torch.device(self.configs.device))
         self.network.load_state_dict(stats['net_param'])
+
 
     def train(self, data, mask, itr):
         frames = data
@@ -63,10 +68,9 @@ class Model(object):
         self.optimizer.step()
 
         if itr >= self.configs.sampling_stop_iter and itr % self.configs.delay_interval == 0:
-            self.scheduler.step()
-            # self.scheduler_F.step()
-            # self.scheduler_D.step()
-            print('Lr decay to:%.8f', self.optimizer.param_groups[0]['lr'])
+            self.optimizer.step()
+            print('Lr decay to {:.8f}'.format(self.optimizer.param_groups[0]['lr']))
+
         return next_frames, loss_l1.detach().cpu().numpy(), loss_l2.detach().cpu().numpy()
 
     def test(self, data, mask):

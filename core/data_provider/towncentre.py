@@ -8,6 +8,7 @@ import codecs
 from core.utils import preprocess
 
 
+
 class Norm(object):
     def __init__(self, max=255):
         self.max = max
@@ -19,8 +20,6 @@ class Norm(object):
 
 
 class ToTensor(object):
-    """Convert ndarrays in sample to Tensors."""
-
     def __call__(self, sample):
         video_x = sample
         video_x = video_x.transpose((0, 3, 1, 2))
@@ -30,8 +29,7 @@ class ToTensor(object):
 
 class towncentre(Dataset):
 
-    def __init__(self, configs, data_train_path, data_test_path, mode,
-                 transform=None):
+    def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
         self.configs = configs
         self.transform = transform
         self.mode = mode
