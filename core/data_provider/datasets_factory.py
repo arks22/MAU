@@ -33,6 +33,7 @@ def data_provider(dataset, configs, data_train_path, data_test_path, batch_size,
 
     return DataLoader(dataset,
                       pin_memory=True,
+                      drop_last=True,
                       batch_size=batch_size,
                       shuffle=is_shuffle,
                       num_workers=num_workers)

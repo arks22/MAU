@@ -4,6 +4,7 @@ import numpy as np
 from core.data_provider import datasets_factory
 from core.models.model_factory import Model
 import core.trainer as trainer
+import glob
 import pynvml
 
 pynvml.nvmlInit()
@@ -38,6 +39,7 @@ def schedule_sampling(eta, itr, channel, batch_size):
                       args.img_height // args.patch_size,
                       args.img_width // args.patch_size,
                       args.patch_size ** 2 * channel))
+
     if not args.scheduled_sampling:
         return 0.0, zeros
 
@@ -81,6 +83,11 @@ def train_wrapper(model):
         model.load(args.pretrained_model)
         begin = int(args.pretrained_model.split('-')[-1])
 
+    save_dirs = glob.glob(args.save_dir + '/*')
+    dirs = list(map(lambda d: int(os.path.basename(d)), save_dirs))
+    dirs.sort()
+    last_dir = str(dirs[-1] + 1) if len(dirs) > 0 else "1"
+
     train_input_handle = datasets_factory.data_provider(configs=args,
                                                         data_train_path=args.data_train_path,
                                                         dataset=args.dataset,
@@ -95,17 +102,12 @@ def train_wrapper(model):
                                                       data_test_path=args.data_val_path,
                                                       batch_size=args.batch_size,
                                                       is_training=False,
-                                                      is_shuffle=True)
+                                                      is_shuffle=False)
 
-    save_dirs = glob.glob(configs.save_dir + '/*')
-    dirs = list(map(lambda d: int(os.path.basename(d)), save_dirs))
-    dirs.sort()
-    last_dir =  str(dirs[-1] + 1)
-
-    configs.save_dir    = os.path.join(configs.save_dir,    last_dir)
-    configs.gen_frm_dir = os.path.join(configs.gen_frm_dir, last_dir)
-    os.mkdir(configs.save_dir)
-    os.mkdir(configs.gen_frm_dir)
+    args.save_dir    = os.path.join(args.save_dir,    last_dir)
+    args.gen_frm_dir = os.path.join(args.gen_frm_dir, last_dir)
+    os.mkdir(args.save_dir)
+    os.mkdir(args.gen_frm_dir)
 
     eta = args.sampling_start_value
     eta -= (begin * args.sampling_changing_rate)
@@ -114,23 +116,21 @@ def train_wrapper(model):
 
     #Train
     for epoch in range(0, args.max_epoches):
-        if itr > args.max_iterations:
-            break
+        print("epoch: " + str(epoch))
+        print("train with " + str(len(train_input_handle)) + " data")
+
         for ims in train_input_handle:
-            if itr > args.max_iterations:
-                break
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr, args.img_channel, batch_size)
-            if itr % args.test_interval == 0:
-                print('\nValidate:')
-                trainer.test(model, val_input_handle, args, itr)
             trainer.train(model, ims, real_input_flag, args, itr)
-            if itr % args.snapshot_interval == 0 and itr > begin:
-                model.save(itr)
-            itr += 1
-
             meminfo_end = pynvml.nvmlDeviceGetMemoryInfo(handle)
             print("\rGPU memory:%dM | " % ((meminfo_end.used - meminfo_begin.used) / (1024 ** 2)),end='')
+
+            itr += 1
+
+        print('\nValidate:')
+        trainer.test(model, val_input_handle, args, itr)
+        model.save(itr)
 
 
 def test_wrapper(model):

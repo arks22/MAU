@@ -125,8 +125,7 @@ def test(model, test_input_handle, configs, itr):
             for i in range(configs.total_length):
                 img[:res_height, i * res_width:(i + 1) * res_width, :] = test_ims[0, i, :]
             for i in range(output_length):
-                img[res_height:, (configs.input_length + i) * res_width:(configs.input_length + i + 1) * res_width,
-                :] = img_out[0, -output_length + i, :]
+                img[res_height:, (configs.input_length + i) * res_width:(configs.input_length + i + 1) * res_width, :] = img_out[0, -output_length + i, :]
             img = np.maximum(img, 0)
             img = np.minimum(img, 1)
             cv2.imwrite(file_name, (img * 255).astype(np.uint8))

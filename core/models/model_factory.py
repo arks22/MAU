@@ -36,7 +36,7 @@ class Model(object):
     def save(self, itr):
         stats = {'net_param': self.network.state_dict()}
 
-        checkpoint_path = os.path.join(configs.save_dir, 'model.ckpt' + '-' + str(itr))
+        checkpoint_path = os.path.join(self.configs.save_dir, 'model.ckpt' + '-' + str(itr))
         torch.save(stats, checkpoint_path)
         print("\nsave predictive model to %s" % checkpoint_path)
 
@@ -68,7 +68,9 @@ class Model(object):
         self.optimizer.step()
 
         if itr >= self.configs.sampling_stop_iter and itr % self.configs.delay_interval == 0:
-            self.optimizer.step()
+            # self.scheduler.step()
+            # self.scheduler_F.step()
+            # self.scheduler_D.step()
             print('Lr decay to {:.8f}'.format(self.optimizer.param_groups[0]['lr']))
 
         return next_frames, loss_l1.detach().cpu().numpy(), loss_l2.detach().cpu().numpy()
