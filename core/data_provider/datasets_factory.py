@@ -15,6 +15,9 @@ def data_provider(dataset, configs, data_train_path, data_test_path, batch_size,
     elif dataset == 'aia211':
         from core.data_provider.aia211 import aia211 as data_set
         from core.data_provider.aia211 import ToTensor, Norm
+    elif dataset == 'hmic':
+        from core.data_provider.hmic import hmic as data_set
+        from core.data_provider.hmic import ToTensor, Norm
 
 
     if is_training:

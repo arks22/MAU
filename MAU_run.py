@@ -88,6 +88,11 @@ def train_wrapper(model):
     dirs.sort()
     last_dir = str(dirs[-1] + 1) if len(dirs) > 0 else "1"
 
+    args.save_dir    = os.path.join(args.save_dir,    last_dir)
+    args.gen_frm_dir = os.path.join(args.gen_frm_dir, last_dir)
+    os.mkdir(args.save_dir)
+    os.mkdir(args.gen_frm_dir)
+
     train_input_handle = datasets_factory.data_provider(configs=args,
                                                         data_train_path=args.data_train_path,
                                                         dataset=args.dataset,
@@ -104,11 +109,6 @@ def train_wrapper(model):
                                                       is_training=False,
                                                       is_shuffle=False)
 
-    args.save_dir    = os.path.join(args.save_dir,    last_dir)
-    args.gen_frm_dir = os.path.join(args.gen_frm_dir, last_dir)
-    os.mkdir(args.save_dir)
-    os.mkdir(args.gen_frm_dir)
-
     eta = args.sampling_start_value
     eta -= (begin * args.sampling_changing_rate)
     itr = begin
@@ -116,7 +116,7 @@ def train_wrapper(model):
 
     #Train
     for epoch in range(0, args.max_epoches):
-        print("epoch: " + str(epoch))
+        print("------------- epoch: " + str(epoch) + " / " + str(args.max_epoches) + " ----------------")
         print("train with " + str(len(train_input_handle)) + " data")
 
         for ims in train_input_handle:
