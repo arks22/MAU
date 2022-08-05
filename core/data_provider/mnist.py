@@ -1,5 +1,4 @@
 from __future__ import print_function, division
-
 import torch
 from torch.utils.data import Dataset
 import numpy as np
@@ -25,7 +24,6 @@ class ToTensor(object):
 
 
 class mnist(Dataset):
-
     def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
         self.transform = transform
         self.mode = mode
@@ -54,6 +52,5 @@ class mnist(Dataset):
 
         if self.transform:
             sample = preprocess.reshape_patch(sample, self.patch_size)
-            # print(sample.shape)
             sample = self.transform(sample)
         return sample

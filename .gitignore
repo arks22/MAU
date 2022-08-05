@@ -3,6 +3,6 @@ results/
 pretrained models/
 __pycache__/
 logs/
-models/
+checkpoints/
 
 

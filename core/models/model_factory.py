@@ -33,10 +33,10 @@ class Model(object):
         self.L1_loss = nn.L1Loss()
 
 
-    def save(self, itr):
+    def save(self, timestamp, itr):
         stats = {'net_param': self.network.state_dict()}
 
-        checkpoint_path = os.path.join(self.configs.save_dir, 'model.ckpt' + '-' + str(itr))
+        checkpoint_path = os.path.join(self.configs.save_dir,timestamp, 'model.ckpt' + '-' + str(itr))
         torch.save(stats, checkpoint_path)
         print("\nsave predictive model to %s" % checkpoint_path)
 
@@ -47,8 +47,7 @@ class Model(object):
         self.network.load_state_dict(stats['net_param'])
 
 
-    def train(self, data, mask, itr):
-        frames = data
+    def train(self, frames, mask, itr):
         self.network.train()
         frames_tensor = torch.FloatTensor(frames).to(self.configs.device)
         mask_tensor = torch.FloatTensor(mask).to(self.configs.device)
@@ -56,27 +55,19 @@ class Model(object):
         next_frames = self.network(frames_tensor, mask_tensor)
         ground_truth = frames_tensor
 
-        batch_size = next_frames.shape[0]
-
         self.optimizer.zero_grad()
-        loss_l1 = self.L1_loss(next_frames,
-                               ground_truth[:, 1:])
-        loss_l2 = self.MSE_criterion(next_frames,
-                                     ground_truth[:, 1:])
+        loss_l1 = self.L1_loss(next_frames, ground_truth[:, 1:])
+        loss_l2 = self.MSE_criterion(next_frames, ground_truth[:, 1:])
         loss_gen = loss_l2
         loss_gen.backward()
         self.optimizer.step()
 
         if itr >= self.configs.sampling_stop_iter and itr % self.configs.delay_interval == 0:
-            # self.scheduler.step()
-            # self.scheduler_F.step()
-            # self.scheduler_D.step()
             print('Lr decay to {:.8f}'.format(self.optimizer.param_groups[0]['lr']))
 
         return next_frames, loss_l1.detach().cpu().numpy(), loss_l2.detach().cpu().numpy()
 
-    def test(self, data, mask):
-        frames = data
+    def test(self, frames, mask):
         self.network.eval()
         frames_tensor = torch.FloatTensor(frames).to(self.configs.device)
         mask_tensor = torch.FloatTensor(mask).to(self.configs.device)

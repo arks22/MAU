@@ -105,6 +105,8 @@ class RNN(nn.Module):
         batch_size = frames.shape[0]
         height = frames.shape[3] // self.configs.sr_size
         width = frames.shape[4] // self.configs.sr_size
+        print("height",frames.shape[3])
+        print("width",frames.shape[4])
         frame_channels = frames.shape[2]
         next_frames = []
         T_t = []

@@ -1,5 +1,6 @@
-FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+FROM nvidia/cuda:11.6.1-devel-ubuntu18.04
 USER root
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
@@ -24,12 +25,12 @@ RUN tar xJf Python-3.9.10.tar.xz
 RUN cd Python-3.9.10 && ./configure && make && make install
 RUN pip3 install -U pip
 RUN pip3 install numpy
-RUN pip3 install torch
-RUN pip3 install torchvision
+RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 RUN pip3 install opencv-python
 RUN pip3 install nvidia-ml-py3
 RUN pip3 install lpips
 RUN pip3 install scikit-image
 RUN pip3 install tqdm
+RUN pip3 install matplotlib
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all

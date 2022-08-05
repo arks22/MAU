@@ -1,12 +1,8 @@
 from __future__ import print_function, division
-
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-import cv2
-import codecs
 from core.utils import preprocess
-
 
 
 class Norm(object):
@@ -28,7 +24,6 @@ class ToTensor(object):
 
 
 class aia211(Dataset):
-
     def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
         self.transform = transform
         self.mode = mode
