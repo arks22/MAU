@@ -4,5 +4,6 @@ pretrained models/
 __pycache__/
 logs/
 checkpoints/
-
+run_schedule.sh
+docker_run.sh
 
