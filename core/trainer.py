@@ -1,14 +1,12 @@
 import os.path
 import cv2
-import glob
 import math
 import numpy as np
 from skimage.metrics import structural_similarity as compare_ssim
+import lpips
 from core.utils import preprocess
-import matplotlib as mpl
 import torch
 import codecs
-import lpips
 
 
 def train(model, ims, real_input_flag, configs, itr):
@@ -22,7 +20,7 @@ def test(model, test_input_handle, configs, itr, timestamp, is_valid):
     else:
         print('\nTest with ' + str(len(test_input_handle)) + ' data')
 
-    loss_fn = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
+    loss_fn_lpips = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
     res_path = os.path.join(configs.gen_frm_dir, timestamp, str(itr))
     if not os.path.exists(res_path): os.mkdir(res_path)
 
@@ -50,7 +48,6 @@ def test(model, test_input_handle, configs, itr, timestamp, is_valid):
     for data in test_input_handle:
         if is_valid and configs.num_valid_samples < batch_id: break;
         print('\ritr:' + str(batch_id),end='')
-        print(data.shape)
 
         batch_id = batch_id + 1
         batch_size = data.shape[0]
@@ -87,7 +84,7 @@ def test(model, test_input_handle, configs, itr, timestamp, is_valid):
                 new_shape = (shape[0], 3, *shape[2:])
                 t1.expand(new_shape)
                 t2.expand(new_shape)
-            d = loss_fn.forward(t1, t2)
+            d = loss_fn_lpips.forward(t1, t2)
             lpips_score = d.mean()
             lpips_score = lpips_score.detach().cpu().numpy()
 

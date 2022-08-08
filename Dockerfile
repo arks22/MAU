@@ -32,5 +32,6 @@ RUN pip3 install lpips
 RUN pip3 install scikit-image
 RUN pip3 install tqdm
 RUN pip3 install matplotlib
+RUN pip3 install imgcat
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all

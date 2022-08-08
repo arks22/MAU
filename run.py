@@ -20,7 +20,7 @@ pynvml.nvmlInit()
 parser = argparse.ArgumentParser(description='MAU')
 parser.add_argument('--dataset', type=str, required=True)
 parser.add_argument('--config', type=str, required=True)
-parser.add_argument('--is_training',            type=bool)
+parser.add_argument('--test',                   action='store_false')
 parser.add_argument('--data_train_path',        type=str)
 parser.add_argument('--data_test_path',         type=str)
 parser.add_argument('--input_length',           type=int)
@@ -166,16 +166,6 @@ def train_wrapper(model):
         model.load(args.pretrained_model)
         begin = int(args.pretrained_model.split('-')[-1])
 
-#    save_dirs = glob.glob(args.save_dir + '/*')
-#    dirs = list(map(lambda d: int(os.path.basename(d)), save_dirs))
-#    dirs.sort()
-#    last_dir = str(dirs[-1] + 1) if len(dirs) > 0 else "1"
-
-#    args.save_dir    = os.path.join(args.save_dir,    last_dir)
-#    args.gen_frm_dir = os.path.join(args.gen_frm_dir, last_dir)
-#    os.mkdir(args.save_dir)
-#    os.mkdir(args.gen_frm_dir)
-
     train_input_handle = datasets_factory.data_provider(configs=args,
                                                         data_train_path=args.data_train_path,
                                                         dataset=args.dataset,
@@ -236,9 +226,7 @@ def test_wrapper(model):
                                                        batch_size=args.batch_size,
                                                        is_training=False,
                                                        is_shuffle=False)
-    itr = 1
-    for i in range(itr):
-        trainer.test(model, test_input_handle, args, itr, TIMESTAMP, False)
+    trainer.test(model, test_input_handle, args, 1, TIMESTAMP, False)
 
 
 if __name__ == '__main__':
@@ -249,7 +237,7 @@ if __name__ == '__main__':
     gen_path = os.path.join(args.gen_frm_dir, TIMESTAMP)
     if not os.path.exists(gen_path): os.mkdir(gen_path)
 
-    if args.is_training:
+    if args.test:
         save_path = os.path.join(args.save_dir, TIMESTAMP)
         if not os.path.exists(save_path): os.mkdir(save_path)
         print('save results : ' + str(TIMESTAMP))

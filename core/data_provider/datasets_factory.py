@@ -24,6 +24,7 @@ def data_provider(dataset, configs, data_train_path, data_test_path, batch_size,
         from core.data_provider.hmic import hmic as data_set
         from core.data_provider.hmic import ToTensor, Norm
 
+    print('mode', mode)
     dataset = data_set(
         configs=configs,
         data_train_path=data_train_path,

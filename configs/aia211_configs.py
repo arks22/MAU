@@ -4,7 +4,7 @@ def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'aia211'
     if args.config                 == None : args.config                  = 'aia211_5'
-    if args.is_training            == None : args.is_training             = True
+    #if args.is_training            == None : args.is_training             = True
     if args.data_train_path        == None : args.data_train_path         = 'data/aia211_5_512/aia211_train.npy'
     if args.data_test_path         == None : args.data_test_path          = 'data/aia211_5_512/aia211_test.npy'
     if args.input_length           == None : args.input_length            = 10
