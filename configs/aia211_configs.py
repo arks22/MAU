@@ -4,9 +4,9 @@ def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'aia211'
     if args.config                 == None : args.config                  = 'aia211_5'
-    #if args.is_training            == None : args.is_training             = True
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_5_512/aia211_train.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_5_512/aia211_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_512_288m/aia211_train.npy'
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_512_288m/aia211_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_512_288m/aia211_test.npy'
     if args.input_length           == None : args.input_length            = 10
     if args.real_length            == None : args.real_length             = 20
     if args.total_length           == None : args.total_length            = 20
@@ -30,10 +30,10 @@ def configs(args):
     if args.lr                     == None : args.lr                      = 5e-4
     if args.lr_decay               == None : args.lr_decay                = 0.90
     if args.delay_interval         == None : args.delay_interval          = 100000
-    if args.batch_size             == None : args.batch_size              = 8
+    if args.batch_size             == None : args.batch_size              = 4 
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.num_save_samples       == None : args.num_save_samples        = 20
-    if args.num_valid_samples      == None : args.num_valid_samples       = 50
+    if args.num_val_samples        == None : args.num_val_samples         = 50
     if args.n_gpu                  == None : args.n_gpu                   = 1
     if args.device                 == None : args.device                  = 'cuda'
     if args.pretrained_model       == None : args.pretrained_model        = ''

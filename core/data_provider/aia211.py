@@ -24,7 +24,7 @@ class ToTensor(object):
 
 
 class aia211(Dataset):
-    def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
+    def __init__(self, configs, path, mode, transform=None):
         self.transform = transform
         self.mode = mode
         self.configs = configs
@@ -32,16 +32,9 @@ class aia211(Dataset):
         self.img_width = configs.img_width
         self.img_height = configs.img_height
         self.img_channel = configs.img_channel
-        if self.mode == 'train':
-            print('Loading train dataset')
-            self.path = data_train_path
-            self.data = np.load(self.path)
-            print('Loading train dataset finished, with size:', self.data.shape[1])
-        else:
-            print('Loading test dataset')
-            self.path = data_test_path
-            self.data = np.load(self.path)
-            print('Loading test dataset finished, with size:', self.data.shape[1])
+        self.path = path
+        self.data = np.load(self.path)
+        print('Loading', mode, 'dataset finished, with size:', self.data.shape[1])
 
     def __len__(self):
         return self.data.shape[1]

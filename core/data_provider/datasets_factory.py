@@ -1,15 +1,11 @@
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
-def data_provider(dataset, configs, data_train_path, data_test_path, batch_size, is_training=True, is_shuffle=True):
-    if is_training:
-        mode = 'train'
+def data_provider(dataset, configs, path, batch_size, mode, is_shuffle=True):
+    if mode == 'train':
         num_workers = configs.num_workers
-        root = data_train_path
     else:
-        mode = 'test'
         num_workers = 0
-        root = data_test_path
 
     if dataset == 'mnist':
         from core.data_provider.mnist import mnist as data_set
@@ -24,11 +20,9 @@ def data_provider(dataset, configs, data_train_path, data_test_path, batch_size,
         from core.data_provider.hmic import hmic as data_set
         from core.data_provider.hmic import ToTensor, Norm
 
-    print('mode', mode)
     dataset = data_set(
         configs=configs,
-        data_train_path=data_train_path,
-        data_test_path=data_test_path,
+        path=path,
         mode=mode,
         transform=transforms.Compose([Norm(), ToTensor()]))
 

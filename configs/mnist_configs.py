@@ -1,8 +1,11 @@
 import argparse
 
 def configs(args):
-    if args.is_training            == None : args.is_training             = True
+    if args.model_name             == None : args.model_name              = 'mau'
+    if args.dataset                == None : args.dataset                 = 'mnist'
+    if args.config                 == None : args.config                  = 'mnist'
     if args.data_train_path        == None : args.data_train_path         = 'data/mnist/mnist_train.npy'
+    #if args.data_valid_path        == None : args.data_valid_path         = 'data/mnist/mnist_valid.npy'
     if args.data_test_path         == None : args.data_test_path          = 'data/mnist/mnist_test.npy'
     if args.input_length           == None : args.input_length            = 10
     if args.real_length            == None : args.real_length             = 20
@@ -10,12 +13,9 @@ def configs(args):
     if args.img_height             == None : args.img_height              = 64
     if args.img_width              == None : args.img_width               = 64
     if args.sr_size                == None : args.sr_size                 = 4
-    if args.img_channel            == None : args.img_channel             = 1
     if args.patch_size             == None : args.patch_size              = 1
+    if args.img_channel            == None : args.img_channel             = 1
     if args.alpha                  == None : args.alpha                   = 1
-    if args.model_name             == None : args.model_name              = 'mau'
-    if args.dataset                == None : args.dataset                 = 'mnist'
-    if args.config                 == None : args.config                  = 'mnist'
     if args.num_workers            == None : args.num_workers             = 4
     if args.num_hidden             == None : args.num_hidden              = 64
     if args.num_layers             == None : args.num_layers              = 4
@@ -33,7 +33,7 @@ def configs(args):
     if args.batch_size             == None : args.batch_size              = 16
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.num_save_samples       == None : args.num_save_samples        = 20
-    if args.num_valid_samples      == None : args.num_valid_samples        = 50
+    if args.num_val_samples        == None : args.num_val_samples         = 50
     if args.n_gpu                  == None : args.n_gpu                   = 1
     if args.device                 == None : args.device                  = 'cuda'
     if args.pretrained_model       == None : args.pretrained_model        = ''
