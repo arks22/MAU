@@ -4,12 +4,12 @@ def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'aia211'
     if args.config                 == None : args.config                  = 'aia211_5'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_512_288m/aia211_train.npy'
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_512_288m/aia211_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_512_288m/aia211_test.npy'
-    if args.input_length           == None : args.input_length            = 10
-    if args.real_length            == None : args.real_length             = 20
-    if args.total_length           == None : args.total_length            = 20
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_train.npy'
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_test.npy'
+    if args.input_length           == None : args.input_length            = 12
+    if args.real_length            == None : args.real_length             = 24
+    if args.total_length           == None : args.total_length            = 24
     if args.img_height             == None : args.img_height              = 512
     if args.img_width              == None : args.img_width               = 512
     if args.sr_size                == None : args.sr_size                 = 4

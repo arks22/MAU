@@ -13,6 +13,9 @@ import time
 import json
 import datetime
 
+# !example
+# python3 run.py --dataset=aia211 --config=aia211
+
 dt_now = datetime.datetime.now()
 TIMESTAMP = dt_now.strftime('%Y%m%d%H%M')
 
@@ -20,7 +23,7 @@ pynvml.nvmlInit()
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='MAU')
 parser.add_argument('--dataset', type=str, required=True)
-parser.add_argument('--config', type=str, required=True)
+parser.add_argument('--config',  type=str, required=True)
 parser.add_argument('--test',                   action='store_false')
 parser.add_argument('--data_train_path',        type=str)
 parser.add_argument('--data_val_path',          type=str)
@@ -65,13 +68,13 @@ parser.add_argument('--sampling_changing_rate', type=float)
 args = parser.parse_args()
 
 if args.config == 'mnist':
-    from configs.mnist_configs import configs
+    from configs.mnist import configs
 elif args.config == 'kitti':
-    from configs.kitti_configs import configs
+    from configs.kitti import configs
 elif args.config == 'town':
-    from configs.town_configs import configs
+    from configs.town import configs
 elif args.config == 'aia211':
-    from configs.aia211_configs import configs
+    from configs.aia211 import configs
 args = configs(args)
 
 print('---------------------------------------------')
@@ -121,8 +124,23 @@ def schedule_sampling(eta, itr):
     return eta, real_input_flag
 
 
-def plot_loss(indices_list, finish_time):
-    indices = np.array(indices_list).T
+def plot_loss(finish_time=0):
+    l1loss = []
+    l2loss = []
+    mse = []
+    psnr = []
+    ssim = []
+    lpips = []
+    with open(os.path.join(gen_path, 'results.json'), 'r') as f:
+        valid_results = json.load(f)['valid']
+        for result in valid_results:
+            l1loss.append(result['summary']['l1loss'])
+            l2loss.append(result['summary']['l2loss'])
+            mse.append(result['summary']['mse_avg'])
+            psnr.append(result['summary']['psnr_avg'])
+            ssim.append(result['summary']['ssim_avg'])
+            lpips.append(result['summary']['lpips_avg'])
+
     fig = plt.figure(figsize=(13, 9))
     gs = fig.add_gridspec(3,3)
     ax = []
@@ -134,27 +152,24 @@ def plot_loss(indices_list, finish_time):
     ax.append(fig.add_subplot(gs[1, 2]))
     ax.append(fig.add_subplot(gs[2, 2]))
 
-    ax[1].plot(indices[0].flatten(), color='r', lw=0.75, label='train loss')
-    ax[2].plot(indices[1], color='b', lw=0.75, label='train L2_loss')
-    ax[3].plot(indices[2], color='g', lw=0.75, label='valid mse')
-    ax[4].plot(indices[3], color='y', lw=0.75, label='valid psnr')
-    ax[5].plot(indices[4], color='m', lw=0.75, label='valid ssim')
-    ax[6].plot(indices[5], color='c', lw=0.75, label='valid lpips')
+    ax[1].plot(l1loss, color='r', lw=0.75, label='train loss')
+    ax[2].plot(l2loss, color='b', lw=0.75, label='train L2_loss')
+    ax[3].plot(mse, color='g', lw=0.75, label='valid mse')
+    ax[4].plot(psnr, color='y', lw=0.75, label='valid psnr')
+    ax[5].plot(ssim, color='m', lw=0.75, label='valid ssim')
+    ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
 
-    for i in range(len(ax)):
-        ax[i].grid()
-        #ax[i].legend()
+    for x in ax: x.grid()
 
     ax[0].xaxis.set_major_locator(mpl.ticker.NullLocator())
     ax[0].yaxis.set_major_locator(mpl.ticker.NullLocator())
     ax[0].text(1,9,"MAU " + str(TIMESTAMP))
     ax[0].text(1,8,"---------------------")
-    ax[0].text(1,7,"Dataset " + str(args.dataset))
-    ax[0].text(1,6,"Batch size: " + str(args.batch_size))
+    ax[0].text(1,7,"Epochs: " + str(args.max_epoches))
+    ax[0].text(1,6,'Dataset ' + str(args.dataset) + ' with size ' +  str(train_size) + ' * ' + str(args.batch_size)) 
     ax[0].text(1,5,"Resolution: " + str(args.img_height) + ' * ' + str(args.img_width))
-    ax[0].text(1,4,"Epoch: " + str(args.max_epoches))
-    time = '- ' if finish_time == 0 else str(finish_time)
-    ax[0].text(1,3,"Time: " + time + 'h')
+    if not finish_time == 0:
+        ax[0].text(1,3,"Time: " + str(finish_time) + 'h')
 
     fig.patch.set_alpha(0)
     fig.tight_layout()
@@ -193,30 +208,36 @@ def train_wrapper(model):
     eta = args.sampling_start_value
     eta -= (begin * args.sampling_changing_rate)
     itr = begin
-    indices = []
     time_train_start = time.time() 
+    global train_size
+    train_size = len(train_input_handle)
 
     for epoch in range(1, args.max_epoches + 1):
         print("------------- epoch: " + str(epoch) + " / " + str(args.max_epoches) + " ----------------")
-        print("Train with " + str(len(train_input_handle)) + " batch")
+        print("Train with " + str(train_size) + " batch")
         time_epoch_start = time.time() 
 
-        #if epoch > 4: break ####################### debug ####################
         for ims in train_input_handle:
-            #if itr > 3: break ####################### debug ####################
+            if itr > 3: break ####################### debug ####################
             time_itr_start = time.time() 
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr)
             loss = list(trainer.train(model, ims, real_input_flag, args, itr))
 
             time_itr = round(time.time() - time_itr_start, 3)
-            print('\ritr:' + str(itr) + ' ' + str(time_itr).ljust(5,'0') + 's | L1 loss: ' + str(loss[0]) + ' L2 loss: ' + str(loss[1]) , end='')
+            print('\ritr:', itr - ((epoch - 1) * train_size), str(time_itr).ljust(5,'0'), 's | L1 loss:', loss[0], 'L2 loss:', loss[1], end='')
             itr += 1
 
-        valid_loss = trainer.test(model, val_input_handle, args, epoch, TIMESTAMP)
-        loss.extend(valid_loss)
-        indices.append(loss)
-        plot_loss(indices,0)
+        trainer.test(model, val_input_handle, args, epoch, TIMESTAMP, True)
+
+        with open(os.path.join(gen_path, 'results.json'), 'r') as f:
+            result_json = json.load(f)
+            result_json['valid'][epoch-1]['summary']['l1loss'] = loss[0].item()
+            result_json['valid'][epoch-1]['summary']['l2loss'] = loss[1].item()
+        with open(os.path.join(gen_path, 'results.json'), 'w') as f:
+            json.dump(result_json, f, indent=4)
+
+        plot_loss() 
         model.save(TIMESTAMP,itr)
         time_epoch = round((time.time() - time_epoch_start) / 60, 3)
         pred_finish_time = time_epoch * (args.max_epoches - epoch) / 60
@@ -224,20 +245,19 @@ def train_wrapper(model):
 
     train_finish_time = round((time.time() - time_train_start) / 3600,2)
     trainer.test(model, test_input_handle, args, itr, TIMESTAMP, False)
-    plot_loss(indices,train_finish_time)
+    plot_loss(train_finish_time)
 
 
 def test_pretrained(model):
     model.load(args.pretrained_model)
     test_input_handle = datasets_factory.data_provider(configs=args,
                                                        dataset=args.dataset,
-                                                       data_train_path=args.data_train_path,
-                                                       data_test_path=args.data_test_path,
+                                                       path=args.data_test_path,
                                                        batch_size=args.batch_size,
-                                                       is_training=False,
+                                                       mode = 'test',
                                                        is_shuffle=False)
 
-    trainer.test(model, test_input_handle, args, 1, TIMESTAMP)
+    trainer.test(model, test_input_handle, args, 1, TIMESTAMP, False)
 
 
 if __name__ == '__main__':
@@ -247,10 +267,14 @@ if __name__ == '__main__':
     gen_path = os.path.join(args.gen_frm_dir, TIMESTAMP)
     if not os.path.exists(gen_path): os.mkdir(gen_path)
 
-    config_path = os.path.join(gen_path,'configs.json')
-    with open(config_path, 'w') as f:
-        json.dump(vars(args),f, indent=4)
-
+    config_json_path = os.path.join(gen_path,'configs.json')
+    with open(config_json_path, 'w') as f:
+        json.dump(vars(args), f, indent=4)
+    
+    result_json_path = os.path.join(gen_path,'results.json')
+    init_dict = {'test':{}, 'valid':[]}
+    with open(result_json_path, 'w') as f:
+        json.dump(init_dict, f, indent=4)
 
     if args.test:
         save_path = os.path.join(args.save_dir, TIMESTAMP)

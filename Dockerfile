@@ -25,6 +25,7 @@ RUN tar xJf Python-3.9.10.tar.xz
 RUN cd Python-3.9.10 && ./configure && make && make install
 RUN pip3 install -U pip
 RUN pip3 install numpy
+RUN pip3 install scikit-video
 RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 RUN pip3 install opencv-python
 RUN pip3 install nvidia-ml-py3

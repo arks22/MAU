@@ -1,7 +1,7 @@
 data/
 results/
 pretrained models/
-__pycache__/
+*/__pycache__/
 logs/
 checkpoints/
 run_schedule.sh

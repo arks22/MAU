@@ -1,8 +1,9 @@
 import os
 import cv2
+import skvideo.io
 import math
 import torch
-import codecs
+import json
 import lpips
 import numpy as np
 from skimage.metrics import structural_similarity as compare_ssim
@@ -14,26 +15,29 @@ def train(model, ims, real_input_flag, configs, itr):
     return np.round(loss_l1, 6), np.round(loss_l2, 6)
 
 
-def test(model, test_input_handle, configs, epoch, timestamp):
+def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
     num_val = min(len(test_input_handle), configs.num_val_samples)
+    gen_path = os.path.join(configs.gen_frm_dir, timestamp)
+
     print('\nTest with', num_val, 'data')
 
     loss_fn_lpips = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
-    res_path = os.path.join(configs.gen_frm_dir, timestamp, str(epoch))
+
+    res_path = os.path.join(gen_path, str(epoch))
     if not os.path.exists(res_path): os.mkdir(res_path)
 
     batch_id = 0
-    img_mse, img_psnr, img_ssim, img_lpips = [], [], [], []
-
     output_length = min(configs.total_length - configs.input_length, configs.total_length - 1)
     img_mse   = np.zeros(output_length)
     img_psnr  = np.zeros(output_length)
     img_ssim  = np.zeros(output_length)
     img_lpips = np.zeros(output_length)
+    scores = []
 
     for data in test_input_handle:
         if num_val < batch_id: break;
-        print('\ritr:' + str(batch_id + 1),end='')
+        print('\ritr:' + str(batch_id + 1), end='')
+        batch_scores = []
 
         batch_id += 1
         batch_size = data.shape[0]
@@ -86,86 +90,110 @@ def test(model, test_input_handle, configs, epoch, timestamp):
             img_psnr[i] += psnr_score
             img_ssim[i] += ssim_score
             img_lpips[i] += lpips_score
+            
+            batch_scores.append({ "mse": mse_score.item(), "psnr": psnr_score.item(), "ssim": ssim_score.item(), "lpips": lpips_score.item() })
 
+        scores.append(batch_scores)
 
         if batch_id <= configs.num_save_samples:
-            #関数化したい
             res_width = configs.img_width
             res_height = configs.img_height
             img = np.ones((2 * res_height, configs.total_length * res_width, configs.img_channel))
-            img_name = os.path.join(res_path, str(batch_id) + '.png')
 
-            vid_arr = np.ones((res_height, res_width*2, configs.img_channel, configs.total_length))
-            vid_name = os.path.join(res_path, str(batch_id) + '.mp4')
-            fourcc = cv2.VideoWriter_fourcc('m','p','4', 'v')
-            video  = cv2.VideoWriter(vid_name, fourcc, 1.00, (res_width*2+1, res_height+1))
-            #なぜかFPS2.00が選べない。なぜ？
+            video_data = np.zeros((res_height, res_width*2, configs.img_channel, configs.total_length))
+            video_name = os.path.join(res_path, str(batch_id) + '.mp4')
+            writer = skvideo.io.FFmpegWriter(video_name, inputdict={'-r':'1'}, outputdict={'-r':'1','-pix_fmt':'yuv420p','-vcodec': 'libx264'})
+
+            # make video and image for GT
             for i in range(configs.total_length):
                 img[:res_height, i * res_width:(i + 1) * res_width, :] = test_ims[0, i, :,:,:]
-                vid_arr[:res_height, :res_width, :, i] = test_ims[0, i, :,:,:]
+                video_data[:res_height, :res_width, :, i] = test_ims[0, i, :,:,:]
 
+            # make video and image for trained
             for i in range(output_length):
                 img[res_height:, (configs.input_length + i) * res_width:(configs.input_length + i + 1) * res_width, :] = img_out[0, -output_length + i, :]
-                vid_arr[:res_height, res_width:, : ,configs.input_length + i] = img_out[0, -output_length + i, :, :, :]
+                video_data[:res_height, res_width:, : ,configs.input_length + i] = img_out[0, -output_length + i, :, :, :]
 
+            # release video
+            video_data = np.maximum(video_data, 0)
+            video_data = np.minimum(video_data, 1)
+            video_data = (video_data * 255).astype(np.uint8)
             for i in range(configs.total_length):
-                frame = vid_arr[:,:,:,i]
-                frame = np.maximum(frame, 0)
-                frame = np.minimum(frame, 1)
-                cv2.imwrite('tmp.png', (frame * 255).astype(np.uint8))
-                tmp = cv2.imread('tmp.png')
-                video.write(tmp)
-            os.remove('tmp.png')
-            video.release()
+                frame = video_data[:,:,:,i]
+                color = (255, 255, 255)
+                cv2.putText(frame, text = 't = ' + str(i+1), org=(20,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX,  fontScale=0.8,  color=color,  thickness=1)
+                if i >= configs.input_length:
+                    txt_mse = 'MSE: ' + str(batch_scores[i-configs.input_length]['mse'])[:4]
+                    txt_psnr = 'PSNR: ' + str(batch_scores[i-configs.input_length]['psnr'])[:4]
+                    txt_ssim = 'SSIM: ' + str(batch_scores[i-configs.input_length]['ssim'])[:4]
+                    txt_lpips = 'LPIPS: ' + str(batch_scores[i-configs.input_length]['lpips'])[:4]
+                    cv2.putText(frame, text=txt_mse, org=(517,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
+                    cv2.putText(frame, text=txt_psnr, org=(517,65), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
+                    cv2.putText(frame, text=txt_ssim, org=(517,80), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
+                    cv2.putText(frame, text=txt_lpips, org=(517,95), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
+
+                if configs.img_channel == 1:
+                    frame = np.repeat(frame, 3).reshape(res_height, res_width*2, 3)
+
+                writer.writeFrame(frame)
+            writer.close()
 
             img = np.maximum(img, 0)
             img = np.minimum(img, 1)
+            img_name = os.path.join(res_path, str(batch_id) + '.png')
             cv2.imwrite(img_name, (img * 255).astype(np.uint8))
 
     img_mse   /= num_val
     img_psnr  /= num_val
     img_ssim  /= num_val
     img_lpips /= num_val
-    avg_mse   = sum(img_mse)   / output_length
-    avg_psnr  = sum(img_psnr)  / output_length
-    avg_ssim  = sum(img_ssim)  / output_length
-    avg_lpips = sum(img_lpips) / output_length
+    avg_mse   = np.mean(img_mse).item()
+    avg_psnr  = np.mean(img_psnr).item()
+    avg_ssim  = np.mean(img_ssim).item()
+    avg_lpips = np.mean(img_lpips).item()
 
-    print('\n')
-    with codecs.open(res_path + '/data.txt', 'w+') as data_write:
-        data_write.truncate()
-        
-        print('----------------------------------------------------------------------------------------------------')
-        print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
+    summary = {
+        "mse_avg": avg_mse,
+        "psnr_avg": avg_psnr,
+        "ssim_avg": avg_ssim,
+        "lpips_avg": avg_lpips,
+        "mse": img_mse.tolist(),
+        "psnr": img_psnr.tolist(),
+        "ssim": img_ssim.tolist(),
+        "lpips": img_lpips.tolist()
+    }
+    epoch_result = { "scores": scores, "summary": summary }
 
-        print('| -- *MSE  per frame: ' + str(avg_mse) + ' --------------------------------------------------------')
-        for i in range(output_length):
-            print('| ' + str(img_mse[i])[:7] + ' ', end='')
-        print('|')
-        data_write.writelines(str(avg_mse) + '\n')
-        data_write.writelines(str(img_mse) + '\n')
+    with open(os.path.join(gen_path, 'results.json'), 'r') as f:
+        result_json = json.load(f)
+        if is_valid:
+            result_json['valid'].append(epoch_result)
+        else:
+            result_json['test'] = epoch_result
+    with open(os.path.join(gen_path, 'results.json'), 'w') as f:
+        json.dump(result_json, f, indent=4)
 
-        print('| --  *PSNR  per frame: ' + str(avg_psnr) + ' -------------------------------------------------')
-        for i in range(output_length):
-            print('| ' + str(img_psnr[i])[:7] + ' ', end='')
-        print('|')
-        data_write.writelines(str(avg_psnr) + '\n')
-        data_write.writelines(str(img_psnr) + '\n')
+    print()
+    print('----------------------------------------------------------------------------------------------------')
+    print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
 
-        print('| -- *SSIM per frame: ' + str(avg_ssim) + ' -------------------------------------------------')
-        for i in range(output_length):
-            print('| ' + str(img_ssim[i])[:7] + ' ', end='')
-        print('|')
-        data_write.writelines(str(avg_ssim) + '\n')
-        data_write.writelines(str(img_ssim) + '\n')
+    print('| -- *MSE  per frame: ' + str(avg_mse) + ' ------------------------------------------------------------')
+    for i in range(output_length):
+        print('| ' + str(img_mse[i])[:7] + ' ', end='')
+    print('|')
 
-        print('| -- *LPIPS per frame: ' + str(avg_lpips) + ' -----------------------------------------------')
-        for i in range(output_length):
-            print('| ' + str(img_lpips[i])[:7] + ' ', end='')
-        print('|')
-        data_write.writelines(str(avg_lpips) + '\n')
-        data_write.writelines(str(img_lpips) + '\n')
+    print('| --  *PSNR  per frame: ' + str(avg_psnr) + ' ---------------------------------------------------------')
+    for i in range(output_length):
+        print('| ' + str(img_psnr[i])[:7] + ' ', end='')
+    print('|')
 
-        print('----------------------------------------------------------------------------------------------------')
+    print('| -- *SSIM per frame: ' + str(avg_ssim) + ' ----------------------------------------------------------')
+    for i in range(output_length):
+        print('| ' + str(img_ssim[i])[:7] + ' ', end='')
+    print('|')
 
-    return avg_mse, avg_psnr, avg_ssim, avg_lpips
+    print('| -- *LPIPS per frame: ' + str(avg_lpips) + ' ----------------------------------------------------------')
+    for i in range(output_length):
+        print('| ' + str(img_lpips[i])[:7] + ' ', end='')
+    print('|')
+    print('----------------------------------------------------------------------------------------------------')
