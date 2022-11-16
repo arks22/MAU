@@ -130,7 +130,7 @@ def plot_loss(finish_time=0):
     mse = []
     psnr = []
     ssim = []
-    lpips = []
+    #lpips = []
     with open(os.path.join(gen_path, 'results.json'), 'r') as f:
         valid_results = json.load(f)['valid']
         for result in valid_results:
@@ -139,7 +139,7 @@ def plot_loss(finish_time=0):
             mse.append(result['summary']['mse_avg'])
             psnr.append(result['summary']['psnr_avg'])
             ssim.append(result['summary']['ssim_avg'])
-            lpips.append(result['summary']['lpips_avg'])
+            #lpips.append(result['summary']['lpips_avg'])
 
     fig = plt.figure(figsize=(13, 9))
     gs = fig.add_gridspec(3,3)
@@ -157,7 +157,7 @@ def plot_loss(finish_time=0):
     ax[3].plot(mse, color='g', lw=0.75, label='valid mse')
     ax[4].plot(psnr, color='y', lw=0.75, label='valid psnr')
     ax[5].plot(ssim, color='m', lw=0.75, label='valid ssim')
-    ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
+    #ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
 
     for x in ax: x.grid()
 
@@ -218,7 +218,7 @@ def train_wrapper(model):
         time_epoch_start = time.time() 
 
         for ims in train_input_handle:
-            if itr > 3: break ####################### debug ####################
+            itr > 3: break ############ DEBUG ##############
             time_itr_start = time.time() 
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr)
