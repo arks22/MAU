@@ -54,8 +54,9 @@ parser.add_argument('--lr_decay',               type=float)
 parser.add_argument('--delay_interval',         type=float) 
 parser.add_argument('--batch_size',             type=int)   
 parser.add_argument('--max_epoches',            type=int)   
+parser.add_argument('--sample_interval',        type=int)   
 parser.add_argument('--num_save_samples',       type=int)   
-parser.add_argument('--num_val_samples',       type=int)   
+parser.add_argument('--num_val_samples',        type=int)   
 parser.add_argument('--n_gpu',                  type=int)   
 parser.add_argument('--device',                 type=str)   
 parser.add_argument('--pretrained_model',       type=str)
@@ -130,7 +131,7 @@ def plot_loss(finish_time=0):
     mse = []
     psnr = []
     ssim = []
-    #lpips = []
+    lpips = []
     with open(os.path.join(gen_path, 'results.json'), 'r') as f:
         valid_results = json.load(f)['valid']
         for result in valid_results:
@@ -139,7 +140,7 @@ def plot_loss(finish_time=0):
             mse.append(result['summary']['mse_avg'])
             psnr.append(result['summary']['psnr_avg'])
             ssim.append(result['summary']['ssim_avg'])
-            #lpips.append(result['summary']['lpips_avg'])
+            lpips.append(result['summary']['lpips_avg'])
 
     fig = plt.figure(figsize=(13, 9))
     gs = fig.add_gridspec(3,3)
@@ -157,9 +158,11 @@ def plot_loss(finish_time=0):
     ax[3].plot(mse, color='g', lw=0.75, label='valid mse')
     ax[4].plot(psnr, color='y', lw=0.75, label='valid psnr')
     ax[5].plot(ssim, color='m', lw=0.75, label='valid ssim')
-    #ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
+    ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
 
-    for x in ax: x.grid()
+    for x in ax:
+        x.grid()
+        x.legend()
 
     ax[0].xaxis.set_major_locator(mpl.ticker.NullLocator())
     ax[0].yaxis.set_major_locator(mpl.ticker.NullLocator())
@@ -218,7 +221,7 @@ def train_wrapper(model):
         time_epoch_start = time.time() 
 
         for ims in train_input_handle:
-            itr > 3: break ############ DEBUG ##############
+            if itr > 3: break ############ DEBUG ##############
             time_itr_start = time.time() 
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr)
