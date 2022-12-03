@@ -28,11 +28,16 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
     loss_fn_lpips = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
 
     res_path = os.path.join(gen_path, str(epoch))
-    if not os.path.exists(res_path):
+
+    if not os.path.exists(res_path) and epoch % configs.sample_interval == 0:
         os.mkdir(res_path)
+        os.chmod(res_path,0o777)
         os.mkdir(os.path.join(res_path, 'movie'))
+        os.chmod(os.path.join(res_path, 'movie'), 0o777)
         os.mkdir(os.path.join(res_path, 'image'))
+        os.chmod(os.path.join(res_path, 'image'), 0o777)
         os.mkdir(os.path.join(res_path, 'ndarray'))
+        os.chmod(os.path.join(res_path, 'ndarray'), 0o777)
 
     batch_id = 0
     output_length = min(configs.total_length - configs.input_length, configs.total_length - 1)
@@ -118,7 +123,6 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
             for i in range(configs.total_length):
                 img[:res_height, i * res_width:(i + 1) * res_width, :] = test_ims[0, i, :, :, :]
                 video_data[:res_height, :res_width, :, i] = test_ims[0, i, :, :, :]
-            np.save(os.path.join(res_path, 'ndarray' ,str(batch_id) + '-gt'), test_ims[0, output_length:, :, :, :])
 
             # make video and image for predicted
             for i in range(output_length):

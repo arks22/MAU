@@ -145,7 +145,7 @@ def plot_loss(finish_time=0):
     fig = plt.figure(figsize=(13, 9))
     gs = fig.add_gridspec(3,3)
     ax = []
-    ax.append(fig.add_subplot(gs[0, 0:2],fc='gray', xlim=(0,10),ylim=(0,10)))
+    ax.append(fig.add_subplot(gs[0, 0:2], fc='gray', xlim=(0,10),ylim=(0,10)))
     ax.append(fig.add_subplot(gs[1, 0]))
     ax.append(fig.add_subplot(gs[2, 0]))
     ax.append(fig.add_subplot(gs[1, 1]))
@@ -268,7 +268,9 @@ if __name__ == '__main__':
     model = Model(args)
 
     gen_path = os.path.join(args.gen_frm_dir, TIMESTAMP)
-    if not os.path.exists(gen_path): os.mkdir(gen_path)
+    if not os.path.exists(gen_path):
+        os.mkdir(gen_path)
+        os.chmod(gen_path, 0o777)
 
     config_json_path = os.path.join(gen_path,'configs.json')
     with open(config_json_path, 'w') as f:
@@ -281,7 +283,9 @@ if __name__ == '__main__':
 
     if args.test:
         save_path = os.path.join(args.save_dir, TIMESTAMP)
-        if not os.path.exists(save_path): os.mkdir(save_path)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+            os.chmod(save_path, 0o777)
         print('save results : ' + str(TIMESTAMP))
         train_wrapper(model)
     else:
