@@ -3,10 +3,10 @@ import argparse
 def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'aia211'
-    if args.config                 == None : args.config                  = 'aia211_5'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_train.npy'
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_4h_512px_sqrt/aia211_512px_sqrt_test.npy'
+    if args.config                 == None : args.config                  = 'aia211'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_train.npy'
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_test.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
@@ -34,7 +34,6 @@ def configs(args):
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5
     if args.num_save_samples       == None : args.num_save_samples        = 10
-    if args.num_val_samples        == None : args.num_val_samples         = 50
     if args.n_gpu                  == None : args.n_gpu                   = 1
     if args.device                 == None : args.device                  = 'cuda'
     if args.pretrained_model       == None : args.pretrained_model        = ''

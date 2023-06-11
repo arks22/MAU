@@ -24,7 +24,7 @@ pynvml.nvmlInit()
 parser = argparse.ArgumentParser(description='MAU')
 parser.add_argument('--dataset', type=str, required=True)
 parser.add_argument('--config',  type=str, required=True)
-parser.add_argument('--test',                   action='store_false')
+parser.add_argument('--test',                   action='store_true')
 parser.add_argument('--data_train_path',        type=str)
 parser.add_argument('--data_val_path',          type=str)
 parser.add_argument('--data_test_path',         type=str)
@@ -56,7 +56,6 @@ parser.add_argument('--batch_size',             type=int)
 parser.add_argument('--max_epoches',            type=int)   
 parser.add_argument('--sample_interval',        type=int)   
 parser.add_argument('--num_save_samples',       type=int)   
-parser.add_argument('--num_val_samples',        type=int)   
 parser.add_argument('--n_gpu',                  type=int)   
 parser.add_argument('--device',                 type=str)   
 parser.add_argument('--pretrained_model',       type=str)
@@ -221,7 +220,7 @@ def train_wrapper(model):
         time_epoch_start = time.time() 
 
         for ims in train_input_handle:
-            if itr > 3: break ############ DEBUG ##############
+            #if itr > 3: break ############ DEBUG ##############
             time_itr_start = time.time() 
             batch_size = ims.shape[0]
             eta, real_input_flag = schedule_sampling(eta, itr)
@@ -247,7 +246,8 @@ def train_wrapper(model):
         print(str(time_epoch) + 'm/epoch | ETA: ' + str(round(pred_finish_time,2)) + 'h')
 
     train_finish_time = round((time.time() - time_train_start) / 3600,2)
-    trainer.test(model, test_input_handle, args, itr, TIMESTAMP, False)
+
+    trainer.test(model, test_input_handle, args, epoch, TIMESTAMP, False) #学習回し終わった後にテスト
     plot_loss(train_finish_time)
 
 
@@ -282,11 +282,11 @@ if __name__ == '__main__':
         json.dump(init_dict, f, indent=4)
 
     if args.test:
+        test_pretrained(model)
+    else:
         save_path = os.path.join(args.save_dir, TIMESTAMP)
         if not os.path.exists(save_path):
             os.mkdir(save_path)
             os.chmod(save_path, 0o777)
         print('save results : ' + str(TIMESTAMP))
         train_wrapper(model)
-    else:
-        test_pretrained(model)

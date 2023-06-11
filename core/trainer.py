@@ -15,21 +15,26 @@ def train(model, ims, real_input_flag, configs, itr):
     return np.round(loss_l1, 6), np.round(loss_l2, 6)
 
 
-def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
-    num_val = min(len(test_input_handle), configs.num_val_samples)
+def test(model, input_handle, configs, epoch, timestamp, is_valid):
     gen_path = os.path.join(configs.gen_frm_dir, timestamp)
 
+    num_val = len(input_handle)
     if is_valid:
         print('\nValid with', num_val, 'data')
         print('Save samples:', configs.num_save_samples)
+
+        res_path = os.path.join(gen_path, str(epoch))
+
     else:
         print('\nTest with', num_val, 'data')
 
+        res_path = os.path.join(gen_path, 'test')
+
+
     loss_fn_lpips = lpips.LPIPS(net='alex', spatial=True).to(configs.device)
 
-    res_path = os.path.join(gen_path, str(epoch))
-
-    if not os.path.exists(res_path) and epoch % configs.sample_interval == 0:
+    
+    if not is_valid or (not os.path.exists(res_path) and epoch % configs.sample_interval == 0):
         os.mkdir(res_path)
         os.chmod(res_path,0o777)
         os.mkdir(os.path.join(res_path, 'movie'))
@@ -47,8 +52,8 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
     img_lpips = np.zeros(output_length)
     scores = []
 
-    for data in test_input_handle:
-        if is_valid and num_val < batch_id: break;
+    for data in input_handle:
+        if num_val < batch_id: break;
         print('\ritr:' + str(batch_id + 1), end='')
         batch_scores = []
 
@@ -116,7 +121,7 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
             img = np.ones((2 * res_height, configs.total_length * res_width, configs.img_channel))
 
             video_data = np.zeros((res_height, res_width*2, configs.img_channel, configs.total_length))
-            video_name = os.path.join(res_path, 'movie', str(batch_id) + '.mp4')
+            video_name = os.path.join(res_path, 'movie', str(batch_id).zfill(2) + '.mp4')
             writer = skvideo.io.FFmpegWriter(video_name, inputdict={'-r':'1'}, outputdict={'-r':'1','-pix_fmt':'yuv420p','-vcodec': 'libx264'})
 
             # make video and image for GT
@@ -128,7 +133,7 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
             for i in range(output_length):
                 img[res_height:, (configs.input_length + i) * res_width:(configs.input_length + i + 1) * res_width, :] = img_out[0, -output_length + i, :]
                 video_data[:res_height, res_width:, : ,configs.input_length + i] = img_out[0, -output_length + i, :, :, :]
-            np.save(os.path.join(res_path, 'ndarray', str(batch_id) + '-pred'), img_out[0])
+            np.save(os.path.join(res_path, 'ndarray', str(batch_id).zfill(2)), img_out[0])
 
             # release video
             video_data = np.maximum(video_data, 0)
@@ -157,7 +162,7 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
 
             img = np.maximum(img, 0)
             img = np.minimum(img, 1)
-            img_name = os.path.join(res_path, 'image', str(batch_id) + '.png')
+            img_name = os.path.join(res_path, 'image', str(batch_id).zfill(2) + '.png')
             cv2.imwrite(img_name, (img * 255).astype(np.uint8))
 
     img_mse   /= num_val
@@ -192,7 +197,10 @@ def test(model, test_input_handle, configs, epoch, timestamp, is_valid):
 
     print()
     print('----------------------------------------------------------------------------------------------------')
-    print('|    1    |    2    |    3    |    4    |    5    |    6    |    7    |    8    |    9    |    10   |')
+    for i in range(output_length):
+        print('|    ' + str(i+1) + '    ', end='')
+    print('|')
+
 
     print('| -- *MSE  per frame: ' + str(avg_mse) + ' ------------------------------------------------------------')
     for i in range(output_length):

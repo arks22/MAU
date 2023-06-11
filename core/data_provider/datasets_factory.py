@@ -15,7 +15,7 @@ def data_provider(dataset, configs, path, batch_size, mode, is_shuffle=True):
         from core.data_provider.towncentre import ToTensor, Norm
     elif dataset == 'aia211':
         from core.data_provider.aia211 import aia211 as data_set
-        from core.data_provider.aia211 import ToTensor, Norm
+        from core.data_provider.aia211 import ToTensor
     elif dataset == 'hmic':
         from core.data_provider.hmic import hmic as data_set
         from core.data_provider.hmic import ToTensor, Norm
@@ -24,6 +24,6 @@ def data_provider(dataset, configs, path, batch_size, mode, is_shuffle=True):
         configs=configs,
         path=path,
         mode=mode,
-        transform=transforms.Compose([Norm(), ToTensor()]))
+        transform=transforms.Compose([ToTensor()]))
 
     return DataLoader(dataset, pin_memory=True, drop_last=True, batch_size=batch_size, shuffle=is_shuffle, num_workers=num_workers)

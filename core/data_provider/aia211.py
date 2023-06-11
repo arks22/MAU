@@ -5,6 +5,7 @@ import numpy as np
 from core.utils import preprocess
 
 
+"""
 class Norm(object):
     def __init__(self, max_val=255.):
         self.max_val = max_val
@@ -13,6 +14,7 @@ class Norm(object):
         video_x = sample
         new_video_x = video_x / self.max_val
         return new_video_x
+"""
 
 
 class ToTensor(object):
