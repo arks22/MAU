@@ -13,12 +13,9 @@ def data_provider(dataset, configs, path, batch_size, mode, is_shuffle=True):
     elif dataset == 'town':
         from core.data_provider.towncentre import towncentre as data_set
         from core.data_provider.towncentre import ToTensor, Norm
-    elif dataset == 'aia211':
+    elif dataset == 'sun':
         from core.data_provider.aia211 import aia211 as data_set
         from core.data_provider.aia211 import ToTensor
-    elif dataset == 'hmic':
-        from core.data_provider.hmic import hmic as data_set
-        from core.data_provider.hmic import ToTensor, Norm
 
     dataset = data_set(
         configs=configs,

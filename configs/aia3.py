@@ -3,9 +3,9 @@ import argparse
 def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'sun'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_train.npy' #Docker側でマウント
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_train.npy' #Docker側でマウント
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_test.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
@@ -13,7 +13,7 @@ def configs(args):
     if args.img_width              == None : args.img_width               = 512
     if args.sr_size                == None : args.sr_size                 = 4
     if args.patch_size             == None : args.patch_size              = 4
-    if args.img_channel            == None : args.img_channel             = 1
+    if args.img_channel            == None : args.img_channel             = 3
     if args.alpha                  == None : args.alpha                   = 1
     if args.num_workers            == None : args.num_workers             = 2
     if args.num_hidden             == None : args.num_hidden              = 64

@@ -1,14 +1,11 @@
 from __future__ import print_function, division
-
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-import cv2
-import codecs
 from core.utils import preprocess
 
 
-
+"""
 class Norm(object):
     def __init__(self, max_val=255.):
         self.max_val = max_val
@@ -17,6 +14,7 @@ class Norm(object):
         video_x = sample
         new_video_x = video_x / self.max_val
         return new_video_x
+"""
 
 
 class ToTensor(object):
@@ -27,9 +25,8 @@ class ToTensor(object):
         return torch.from_numpy(video_x).float()
 
 
-class hmic(Dataset):
-
-    def __init__(self, configs, data_train_path, data_test_path, mode, transform=None):
+class sun(Dataset):
+    def __init__(self, configs, path, mode, transform=None):
         self.transform = transform
         self.mode = mode
         self.configs = configs
@@ -37,37 +34,18 @@ class hmic(Dataset):
         self.img_width = configs.img_width
         self.img_height = configs.img_height
         self.img_channel = configs.img_channel
-
-        if self.mode == 'train':
-            print('Loading train dataset')
-            self.path = data_train_path
-            self.data = np.load(self.path)
-            print('Loading train dataset finished, with size:', self.data.shape[1])
-        else:
-            print('Loading test dataset')
-            self.path = data_test_path
-            self.data = np.load(self.path)
-            print('Loading test dataset finished, with size:', self.data.shape[1])
+        self.path = path
+        self.data = np.load(self.path)
+        print('Loading', mode, 'dataset finished, with size:', self.data.shape[1])
 
     def __len__(self):
         return self.data.shape[1]
 
     def __getitem__(self, idx):
+        #print(self.index[3])
         sample = self.data[:, idx, :]
 
         if self.transform:
             sample = preprocess.reshape_patch(sample, self.patch_size)
             sample = self.transform(sample)
-
         return sample
-
-    def judgeRegularImage(img):
-        check_slice = np.arange(64,448,16)
-
-        for slc in check_slice:
-            if np.all(img[:,slc,:]==0):
-                print("error image")
-                return False #Error
-
-        return True  #regular
-

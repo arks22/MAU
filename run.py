@@ -1,5 +1,6 @@
 import os
 import argparse
+import importlib
 import numpy as np
 from core.data_provider import datasets_factory
 from core.models.model_factory import Model
@@ -14,7 +15,7 @@ import json
 import datetime
 
 # !example
-# python3 run.py --dataset=aia211 --config=aia211
+# python3 run.py --config=aia211
 
 dt_now = datetime.datetime.now()
 TIMESTAMP = dt_now.strftime('%Y%m%d%H%M')
@@ -22,9 +23,9 @@ TIMESTAMP = dt_now.strftime('%Y%m%d%H%M')
 pynvml.nvmlInit()
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='MAU')
-parser.add_argument('--dataset', type=str, required=True)
 parser.add_argument('--config',  type=str, required=True)
 parser.add_argument('--test',                   action='store_true')
+parser.add_argument('--dataset',                type=str)
 parser.add_argument('--data_train_path',        type=str)
 parser.add_argument('--data_val_path',          type=str)
 parser.add_argument('--data_test_path',         type=str)
@@ -67,18 +68,20 @@ parser.add_argument('--sampling_start_value',   type=float)
 parser.add_argument('--sampling_changing_rate', type=float) 
 args = parser.parse_args()
 
-if args.config == 'mnist':
-    from configs.mnist import configs
-elif args.config == 'kitti':
-    from configs.kitti import configs
-elif args.config == 'town':
-    from configs.town import configs
-elif args.config == 'aia211':
-    from configs.aia211 import configs
+configs = importlib.import_module(f"configs.{args.config}").configs
 args = configs(args)
 
+if args.test:
+    mode = 'Test'
+    dataset_path = args.data_test_path
+else:
+    mode = 'Train'
+    dataset_path = args.data_train_path
+
 print('---------------------------------------------')
-print('Dataset       :', args.dataset)
+print('Dataset type  :', args.dataset)
+print('Mode          :', mode)
+print('Dataset path  :', dataset_path)
 print('Configuration :', args.config)
 print('Model         :', args.model_name)
 print('---------------------------------------------')

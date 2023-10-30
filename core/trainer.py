@@ -142,6 +142,8 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
 
             for i in range(configs.total_length):
                 frame = video_data[:,:,:,i].astype(np.uint8)
+
+                """
                 color = (255, 255, 255)
                 cv2.putText(frame, text = 't = ' + str(i+1), org=(20,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX,  fontScale=0.8,  color=color,  thickness=1)
                 if i >= configs.input_length:
@@ -153,6 +155,7 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
                     cv2.putText(frame, text=txt_psnr, org=(517,65), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
                     cv2.putText(frame, text=txt_ssim, org=(517,80), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
                     cv2.putText(frame, text=txt_lpips, org=(517,95), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
+                """
 
                 if configs.img_channel == 1:
                     frame = np.repeat(frame, 3).reshape(res_height, res_width*2, 3)
