@@ -13,10 +13,12 @@ class Model(object):
         self.patch_width = configs.img_width // configs.patch_size
         self.patch_channel = configs.img_channel * (configs.patch_size ** 2)
         self.num_layers = configs.num_layers
+
         networks_map = {
             'mau': MAU.RNN,
         }
         num_hidden = []
+
         for i in range(configs.num_layers):
             num_hidden.append(configs.num_hidden)
         self.num_hidden = num_hidden

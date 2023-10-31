@@ -26,10 +26,14 @@ class RNN(nn.Module):
 
         for i in range(num_layers):
             in_channel = num_hidden[i - 1]
-            cell_list.append(
-                MAUCell(in_channel, num_hidden[i], height, width, configs.filter_size,
-                        configs.stride, self.tau, self.cell_mode)
-            )
+            cell_list.append(MAUCell(in_channel,
+                                     num_hidden[i],
+                                     height,
+                                     width,
+                                     configs.filter_size,
+                                     configs.stride,
+                                     self.tau,
+                                     self.cell_mode))
         self.cell_list = nn.ModuleList(cell_list)
 
         # Encoder
@@ -93,11 +97,10 @@ class RNN(nn.Module):
             decoders.append(decoder)
         self.decoders = nn.ModuleList(decoders)
 
-        self.srcnn = nn.Sequential(
-            nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
-        )
+        self.srcnn = nn.Sequential(nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0))
         self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
         self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
+
 
     def forward(self, frames, mask_true):
         # print('ok')

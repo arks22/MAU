@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 import torch
+import os
 from torch.utils.data import Dataset
 import numpy as np
 from core.utils import preprocess
@@ -35,8 +36,16 @@ class sun(Dataset):
         self.img_height = configs.img_height
         self.img_channel = configs.img_channel
         self.path = path
-        self.data = np.load(self.path)
-        print('Loading', mode, 'dataset finished, with size:', self.data.shape[1])
+
+        data_size = os.path.getsize(self.path)
+        fourty_gb = 40 * 1024 * 1024 * 1024
+        if data_size > fourty_gb:
+            # サイズがデカい場合,メモリマップで読み込む
+            self.data = np.load(self.path, mmap_mode='r')
+            print('Loading with memory mapping', mode, 'dataset finished, with size:', self.data.shape[1])
+        else:
+            self.data = np.load(self.path)
+            print('Loading', mode, 'dataset finished, with size:', self.data.shape[1])
 
     def __len__(self):
         return self.data.shape[1]

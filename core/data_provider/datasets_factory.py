@@ -14,8 +14,8 @@ def data_provider(dataset, configs, path, batch_size, mode, is_shuffle=True):
         from core.data_provider.towncentre import towncentre as data_set
         from core.data_provider.towncentre import ToTensor, Norm
     elif dataset == 'sun':
-        from core.data_provider.aia211 import aia211 as data_set
-        from core.data_provider.aia211 import ToTensor
+        from core.data_provider.sun import sun as data_set
+        from core.data_provider.sun import ToTensor
 
     dataset = data_set(
         configs=configs,

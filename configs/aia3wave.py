@@ -3,9 +3,9 @@ import argparse
 def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'sun'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_train.npy' #Docker側でマウント
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia3_4h_512px_sqrt_2023/aia3_4h_512px_sqrt_2023_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia3wave_4h_512px_sqrt_2023/aia3wave_4h_512px_sqrt_2023_train.npy' #Docker側でマウント
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia3wave_4h_512px_sqrt_2023/aia3wave_4h_512px_sqrt_2023_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia3wave_4h_512px_sqrt_2023/aia3wave_4h_512px_sqrt_2023_test.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
@@ -36,8 +36,8 @@ def configs(args):
     if args.n_gpu                  == None : args.n_gpu                   = 1
     if args.device                 == None : args.device                  = 'cuda'
     if args.pretrained_model       == None : args.pretrained_model        = ''
-    if args.save_dir               == None : args.save_dir                = 'checkpoints/aia211/'
-    if args.gen_frm_dir            == None : args.gen_frm_dir             = 'results/aia211/'
+    if args.save_dir               == None : args.save_dir                = 'checkpoints/aia3wave/'
+    if args.gen_frm_dir            == None : args.gen_frm_dir             = 'results/aia3wave/'
     if args.scheduled_sampling     == None : args.scheduled_sampling      = True
     if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 20000
     if args.sampling_start_value   == None : args.sampling_start_value    = 1.0
