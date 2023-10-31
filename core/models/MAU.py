@@ -25,44 +25,23 @@ class RNN(nn.Module):
         # print(width)
 
         for i in range(num_layers):
-            in_channel = num_hidden[i - 1]
-            cell_list.append(MAUCell(in_channel,
-                                     num_hidden[i],
-                                     height,
-                                     width,
-                                     configs.filter_size,
-                                     configs.stride,
-                                     self.tau,
-                                     self.cell_mode))
+            cell_list.append(MAUCell(num_hidden[i-1], num_hidden[i], height, width, configs.filter_size, configs.stride, self.tau, self.cell_mode))
         self.cell_list = nn.ModuleList(cell_list)
 
         # Encoder
         n = int(math.log2(configs.sr_size))
         encoders = []
         encoder = nn.Sequential()
-        encoder.add_module(name='encoder_t_conv{0}'.format(-1),
-                           module=nn.Conv2d(in_channels=self.frame_channel,
-                                            out_channels=self.num_hidden[0],
-                                            stride=1,
-                                            padding=0,
-                                            kernel_size=1))
-        encoder.add_module(name='relu_t_{0}'.format(-1),
-                           module=nn.LeakyReLU(0.2))
+        encoder.add_module(name='encoder_t_conv{0}'.format(-1), module=nn.Conv2d(in_channels=self.frame_channel, out_channels=self.num_hidden[0], stride=1, padding=0, kernel_size=1))
+        encoder.add_module(name='relu_t_{0}'.format(-1), module=nn.LeakyReLU(0.2))
         encoders.append(encoder)
+
         for i in range(n):
             encoder = nn.Sequential()
-            encoder.add_module(name='encoder_t{0}'.format(i),
-                               module=nn.Conv2d(in_channels=self.num_hidden[0],
-                                                out_channels=self.num_hidden[0],
-                                                stride=(2, 2),
-                                                padding=(1, 1),
-                                                kernel_size=(3, 3)
-                                                ))
-            # self.encoder_t.add_module(name='gn_t{0}'.format(i),
-            #                           module=nn.GroupNorm(4, self.frame_channel))
-            encoder.add_module(name='encoder_t_relu{0}'.format(i),
-                               module=nn.LeakyReLU(0.2))
+            encoder.add_module(name='encoder_t{0}'.format(i), module=nn.Conv2d(in_channels=self.num_hidden[0], out_channels=self.num_hidden[0], stride=(2, 2), padding=(1, 1), kernel_size=(3, 3) ))
+            encoder.add_module(name='encoder_t_relu{0}'.format(i), module=nn.LeakyReLU(0.2))
             encoders.append(encoder)
+
         self.encoders = nn.ModuleList(encoders)
 
         # Decoder
@@ -71,29 +50,14 @@ class RNN(nn.Module):
         for i in range(n - 1):
             decoder = nn.Sequential()
             decoder.add_module(name='c_decoder{0}'.format(i),
-                               module=nn.ConvTranspose2d(in_channels=self.num_hidden[-1],
-                                                         out_channels=self.num_hidden[-1],
-                                                         stride=(2, 2),
-                                                         padding=(1, 1),
-                                                         kernel_size=(3, 3),
-                                                         output_padding=(1, 1)
-                                                         ))
-            # self.decoder_s.add_module(name='gn_decoder_s{0}'.format(i),
-            #                           module=nn.GroupNorm(4, self.frame_channel))
-            decoder.add_module(name='c_decoder_relu{0}'.format(i),
-                               module=nn.LeakyReLU(0.2))
+                               module=nn.ConvTranspose2d(in_channels=self.num_hidden[-1], out_channels=self.num_hidden[-1], stride=(2, 2), padding=(1, 1), kernel_size=(3, 3), output_padding=(1, 1)))
+            decoder.add_module(name='c_decoder_relu{0}'.format(i),module=nn.LeakyReLU(0.2))
             decoders.append(decoder)
 
         if n > 0:
             decoder = nn.Sequential()
             decoder.add_module(name='c_decoder{0}'.format(n - 1),
-                               module=nn.ConvTranspose2d(in_channels=self.num_hidden[-1],
-                                                         out_channels=self.num_hidden[-1],
-                                                         stride=(2, 2),
-                                                         padding=(1, 1),
-                                                         kernel_size=(3, 3),
-                                                         output_padding=(1, 1)
-                                                         ))
+                               module=nn.ConvTranspose2d(in_channels=self.num_hidden[-1], out_channels=self.num_hidden[-1], stride=(2, 2), padding=(1, 1), kernel_size=(3, 3), output_padding=(1, 1) ))
             decoders.append(decoder)
         self.decoders = nn.ModuleList(decoders)
 
@@ -103,7 +67,6 @@ class RNN(nn.Module):
 
 
     def forward(self, frames, mask_true):
-        # print('ok')
         mask_true = mask_true.permute(0, 1, 4, 2, 3).contiguous()
         batch_size = frames.shape[0]
         height = frames.shape[3] // self.configs.sr_size
@@ -153,19 +116,16 @@ class RNN(nn.Module):
                 S_pre[i].append(S_t)
                 T_t[i], S_t = self.cell_list[i](T_t[i], S_t, t_att, s_att)
                 T_pre[i].append(T_t[i])
-                # S_pre[i].append(S_t)
             out = S_t
-            # out = self.merge(torch.cat([T_t[-1], S_t], dim=1))
+
             frames_feature_decoded = []
             for i in range(len(self.decoders)):
                 out = self.decoders[i](out)
-                # print("ok")
                 if self.configs.model_mode == 'recall':
-                    # print('unet')
                     out = out + frames_feature_encoded[-2 - i]
-            # out = self.decoder(out)
 
             x_gen = self.srcnn(out)
             next_frames.append(x_gen)
         next_frames = torch.stack(next_frames, dim=0).permute(1, 0, 2, 3, 4).contiguous()
+
         return next_frames
