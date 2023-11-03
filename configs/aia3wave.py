@@ -13,7 +13,8 @@ def configs(args):
     if args.img_width              == None : args.img_width               = 512
     if args.sr_size                == None : args.sr_size                 = 4
     if args.patch_size             == None : args.patch_size              = 4
-    if args.img_channel            == None : args.img_channel             = 3
+    if args.in_channel             == None : args.in_channel              = 3
+    if args.out_channel            == None : args.out_channel             = 3
     if args.alpha                  == None : args.alpha                   = 1
     if args.num_workers            == None : args.num_workers             = 2
     if args.num_hidden             == None : args.num_hidden              = 64

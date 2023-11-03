@@ -7,9 +7,9 @@ import math
 class RNN(nn.Module):
     def __init__(self, num_layers, num_hidden, configs):
         super(RNN, self).__init__()
-        # print(configs.srcnn_tf)
         self.configs = configs
-        self.frame_channel = configs.patch_size * configs.patch_size * configs.img_channel
+        self.frame_channel = configs.patch_size * configs.patch_size * configs.in_channel
+        self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
         self.num_layers = num_layers
         self.num_hidden = num_hidden
         self.tau = configs.tau
@@ -17,7 +17,6 @@ class RNN(nn.Module):
         self.states = ['recall', 'normal']
         if not self.configs.model_mode in self.states:
             raise AssertionError
-        # self.time = 2
         cell_list = []
 
         width = configs.img_width // configs.patch_size // configs.sr_size
@@ -25,6 +24,7 @@ class RNN(nn.Module):
         # print(width)
 
         for i in range(num_layers):
+            # MAUCellのインスタンス化
             cell_list.append(MAUCell(num_hidden[i-1], num_hidden[i], height, width, configs.filter_size, configs.stride, self.tau, self.cell_mode))
         self.cell_list = nn.ModuleList(cell_list)
 
@@ -46,7 +46,6 @@ class RNN(nn.Module):
 
         # Decoder
         decoders = []
-
         for i in range(n - 1):
             decoder = nn.Sequential()
             decoder.add_module(name='c_decoder{0}'.format(i),
@@ -62,11 +61,22 @@ class RNN(nn.Module):
         self.decoders = nn.ModuleList(decoders)
 
         self.srcnn = nn.Sequential(nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0))
+        #self.srcnn = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
         self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
         self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
 
 
     def forward(self, frames, mask_true):
+        """
+        Forward pass of the MAU model.
+
+        Args:
+            frames (torch.Tensor): Input frames.
+            mask_true (torch.Tensor): Ground truth masks (but NOT Ground truth frames)
+
+        Returns:
+            next_frames (torch.Tensor): Predicted frames.
+        """
         mask_true = mask_true.permute(0, 1, 4, 2, 3).contiguous()
         batch_size = frames.shape[0]
         height = frames.shape[3] // self.configs.sr_size
@@ -76,7 +86,6 @@ class RNN(nn.Module):
         T_t = []
         T_pre = []
         S_pre = []
-        # H_t = []
         x_gen = None
         for layer_idx in range(self.num_layers):
             tmp_t = []
@@ -92,32 +101,35 @@ class RNN(nn.Module):
             S_pre.append(tmp_s)
 
         for t in range(self.configs.total_length - 1):
-            if t < self.configs.input_length:
+            if t < self.configs.input_length: # 0~11 (Input frames)
                 net = frames[:, t]
-            else:
+            else:                             # 12~23 (Predicted frames)
                 time_diff = t - self.configs.input_length
                 net = mask_true[:, time_diff] * frames[:, t] + (1 - mask_true[:, time_diff]) * x_gen
             frames_feature = net
             frames_feature_encoded = []
+            
+            # エンコーダーをスタック
             for i in range(len(self.encoders)):
                 frames_feature = self.encoders[i](frames_feature)
                 frames_feature_encoded.append(frames_feature)
+
             if t == 0:
                 for i in range(self.num_layers):
                     zeros = torch.zeros([batch_size, self.num_hidden[i], height, width]).to(self.configs.device)
                     T_t.append(zeros)
-                    # print('ok')
             S_t = frames_feature
-            for i in range(self.num_layers):
-                t_att = T_pre[i][-self.tau:]
-                t_att = torch.stack(t_att, dim=0)
-                s_att = S_pre[i][-self.tau:]
-                s_att = torch.stack(s_att, dim=0)
+
+            # num_layersで指定した階層分MAUをスタック
+            for k in range(self.num_layers):
+                T_att = torch.stack(T_pre[k][-self.tau:], dim=0)
+                S_att = torch.stack(S_pre[k][-self.tau:], dim=0)
                 S_pre[i].append(S_t)
-                T_t[i], S_t = self.cell_list[i](T_t[i], S_t, t_att, s_att)
-                T_pre[i].append(T_t[i])
+                T_t[i], S_t = self.cell_list[k](T_t[k], S_t, T_att, S_att) #MAUのforward
+                T_pre[i].append(T_t[k])
             out = S_t
 
+            # デコーダーをスタック
             frames_feature_decoded = []
             for i in range(len(self.decoders)):
                 out = self.decoders[i](out)
@@ -126,6 +138,6 @@ class RNN(nn.Module):
 
             x_gen = self.srcnn(out)
             next_frames.append(x_gen)
-        next_frames = torch.stack(next_frames, dim=0).permute(1, 0, 2, 3, 4).contiguous()
 
+        next_frames = torch.stack(next_frames, dim=0).permute(1, 0, 2, 3, 4).contiguous()
         return next_frames

@@ -34,14 +34,15 @@ parser.add_argument('--real_length',            type=int)
 parser.add_argument('--total_length',           type=int)
 parser.add_argument('--img_height',             type=int)
 parser.add_argument('--img_width',              type=int)
-parser.add_argument('--sr_size',                type=int)
-parser.add_argument('--img_channel',            type=int)
+parser.add_argument('--sr_size',                type=int, help='Encoder-Decoderモデルの層の深さを決定')
+parser.add_argument('--in_channel',             type=int, help='入力チャンネル数')
+parser.add_argument('--out_channel',            type=int)
 parser.add_argument('--patch_size',             type=int)
 parser.add_argument('--alpha',                  type=float )
 parser.add_argument('--model_name',             type=str)   
 parser.add_argument('--num_workers',            type=int)   
 parser.add_argument('--num_hidden',             type=int)   
-parser.add_argument('--num_layers',             type=int)   
+parser.add_argument('--num_layers',             type=int, help='MAUセルの深さ(スタック数)を決定')   
 parser.add_argument('--num_heads',              type=int)   
 parser.add_argument('--filter_size',            type=int)   
 parser.add_argument('--stride',                 type=int)   
@@ -92,7 +93,7 @@ def schedule_sampling(eta, itr):
                       args.total_length - args.input_length - 1,
                       args.img_height // args.patch_size,
                       args.img_width // args.patch_size,
-                      args.patch_size ** 2 * args.img_channel))
+                      args.patch_size ** 2 * args.in_channel))
 
     if not args.scheduled_sampling:
         return 0.0, zeros
@@ -106,10 +107,10 @@ def schedule_sampling(eta, itr):
     true_token = (random_flip < eta)
     ones = np.ones((args.img_height // args.patch_size,
                     args.img_width // args.patch_size,
-                    args.patch_size ** 2 * args.img_channel))
+                    args.patch_size ** 2 * args.in_channel))
     zeros = np.zeros((args.img_height // args.patch_size,
                       args.img_width // args.patch_size,
-                      args.patch_size ** 2 * args.img_channel))
+                      args.patch_size ** 2 * args.in_channel))
     real_input_flag = []
     for i in range(args.batch_size):
         for j in range(args.total_length - args.input_length - 1):
@@ -123,7 +124,7 @@ def schedule_sampling(eta, itr):
                                   args.total_length - args.input_length - 1,
                                   args.img_height // args.patch_size,
                                   args.img_width // args.patch_size,
-                                  args.patch_size ** 2 * args.img_channel))
+                                  args.patch_size ** 2 * args.in_channel))
     return eta, real_input_flag
 
 

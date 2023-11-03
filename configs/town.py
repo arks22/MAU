@@ -16,7 +16,7 @@ def configs():
     parser.add_argument('--img_height',             type=int,   default=1088)
     parser.add_argument('--img_width',              type=int,   default=1920)
     parser.add_argument('--sr_size',                type=int,   default=16)
-    parser.add_argument('--img_channel',            type=int,   default=3)
+    parser.add_argument('--in_channel',            type=int,   default=3)
     parser.add_argument('--patch_size',             type=int,   default=4)
     parser.add_argument('--alpha',                  type=float, default=0.1)
     parser.add_argument('--model_name',             type=str,   default='mau')

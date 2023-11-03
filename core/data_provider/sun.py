@@ -34,13 +34,13 @@ class sun(Dataset):
         self.patch_size = configs.patch_size
         self.img_width = configs.img_width
         self.img_height = configs.img_height
-        self.img_channel = configs.img_channel
+        self.in_channel = configs.in_channel
         self.path = path
 
         data_size = os.path.getsize(self.path)
-        fourty_gb = 40 * 1024 * 1024 * 1024
-        if data_size > fourty_gb:
-            # サイズがデカい場合,メモリマップで読み込む
+        
+        if data_size > 40 * 1024 * 1024 * 1024:
+            # 40gbよりデカい場合,メモリマップで読み込む
             self.data = np.load(self.path, mmap_mode='r')
             print('Loading with memory mapping', mode, 'dataset finished, with size:', self.data.shape[1])
         else:
@@ -51,10 +51,12 @@ class sun(Dataset):
         return self.data.shape[1]
 
     def __getitem__(self, idx):
-        #print(self.index[3])
+        # DataLoaderオブジェクトを作成する際にこのsunクラスのインスタンスを渡すと、
+        # データローダーがバッチを生成する際に自動的に__getitem__が呼び出される
         sample = self.data[:, idx, :]
 
         if self.transform:
             sample = preprocess.reshape_patch(sample, self.patch_size)
+            #print('transform')
             sample = self.transform(sample)
         return sample

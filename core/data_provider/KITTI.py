@@ -36,7 +36,7 @@ class KITTI(Dataset):
         self.patch_size = configs.patch_size
         self.img_width = configs.img_width
         self.img_height = configs.img_height
-        self.img_channel = configs.img_channel
+        self.in_channel = configs.in_channel
         if self.mode == 'train':
             print('Loading train dataset')
             self.path = data_train_path
@@ -57,7 +57,7 @@ class KITTI(Dataset):
         item_ifo_list = self.file_list[idx].split(',')
         begin = int(item_ifo_list[1])
         end = begin + self.configs.total_length
-        data_slice = np.ndarray(shape=(end - begin, self.img_height, self.img_width, self.img_channel), dtype=np.uint8)
+        data_slice = np.ndarray(shape=(end - begin, self.img_height, self.img_width, self.in_channel), dtype=np.uint8)
         key_words_list = item_ifo_list[0].split('/')
         if key_words_list[2] == 'KITTI':
             for i in range(end - begin):

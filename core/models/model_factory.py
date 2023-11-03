@@ -3,7 +3,7 @@ import glob
 import torch
 import torch.nn as nn
 from torch.optim import Adam
-from core.models import MAU
+from core.models import RNN
 
 
 class Model(object):
@@ -11,25 +11,24 @@ class Model(object):
         self.configs = configs
         self.patch_height = configs.img_height // configs.patch_size
         self.patch_width = configs.img_width // configs.patch_size
-        self.patch_channel = configs.img_channel * (configs.patch_size ** 2)
+        self.patch_channel = configs.in_channel * (configs.patch_size ** 2)
         self.num_layers = configs.num_layers
 
         networks_map = {
-            'mau': MAU.RNN,
+            'mau': RNN.RNN,
         }
         num_hidden = []
 
-        for i in range(configs.num_layers):
-            num_hidden.append(configs.num_hidden)
+        # MAUセルの深さに合わせてCNNのチャンネル数を設定
+        num_hidden = [configs.num_hidden for i in range(configs.num_layers)]
+
         self.num_hidden = num_hidden
         if configs.model_name in networks_map:
             Network = networks_map[configs.model_name]
-            self.network = Network(self.num_layers, self.num_hidden, configs).to(configs.device)
+            self.network = Network(self.num_layers, self.num_hidden, configs).to(configs.device) #RNNのインスタンス化
         else:
             raise ValueError('Name of network unknown %s' % configs.model_name)
-        # print("Network state:")
-        # for param_tensor in self.network.state_dict(): 
-        #     print(param_tensor, '\t', self.network.state_dict()[param_tensor].size())
+
         self.optimizer = Adam(self.network.parameters(), lr=configs.lr)
         self.MSE_criterion = nn.MSELoss()
         self.L1_loss = nn.L1Loss()
@@ -54,7 +53,8 @@ class Model(object):
         frames_tensor = torch.FloatTensor(frames).to(self.configs.device)
         mask_tensor = torch.FloatTensor(mask).to(self.configs.device)
 
-        next_frames = self.network(frames_tensor, mask_tensor)
+        # RNNのforward (インスタンスにデータを渡すことで間接的にfowardが呼ばれる)
+        next_frames = self.network(frames_tensor, mask_tensor) 
         ground_truth = frames_tensor
 
         self.optimizer.zero_grad()

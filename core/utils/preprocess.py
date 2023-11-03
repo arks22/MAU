@@ -30,16 +30,16 @@ def reshape_patch_back(patch_tensor, patch_size):
     patch_height = np.shape(patch_tensor)[2]
     patch_width = np.shape(patch_tensor)[3]
     channels = np.shape(patch_tensor)[4]
-    img_channels = channels // (patch_size * patch_size)
+    in_channels = channels // (patch_size * patch_size)
     a = np.reshape(patch_tensor, [batch_size, seq_length,
                                   patch_height, patch_width,
                                   patch_size, patch_size,
-                                  img_channels])
+                                  in_channels])
     b = np.transpose(a, [0, 1, 2, 4, 3, 5, 6])
     img_tensor = np.reshape(b, [batch_size, seq_length,
                                 patch_height * patch_size,
                                 patch_width * patch_size,
-                                img_channels])
+                                in_channels])
     return img_tensor
 
 
@@ -53,16 +53,16 @@ def reshape_patch_back_tensor(patch_tensor, patch_size):
     patch_height = np.shape(patch_narray)[2]
     patch_width = np.shape(patch_narray)[3]
     channels = np.shape(patch_narray)[4]
-    img_channels = channels // (patch_size * patch_size)
+    in_channels = channels // (patch_size * patch_size)
     a = torch.reshape(patch_tensor, [batch_size, seq_length,
                                      patch_height, patch_width,
                                      patch_size, patch_size,
-                                     img_channels])
+                                     in_channels])
     b = a.permute([0, 1, 2, 4, 3, 5, 6])
     img_tensor = torch.reshape(b, [batch_size, seq_length,
                                    patch_height * patch_size,
                                    patch_width * patch_size,
-                                   img_channels])
+                                   in_channels])
     return img_tensor.permute(0, 1, 4, 2, 3)
 
 
@@ -82,6 +82,3 @@ def reshape_patch_tensor(img_tensor, patch_size):
                                      img_width // patch_size,
                                      patch_size * patch_size * num_channels])
     return patch_tensor.permute((0, 3, 1, 2))
-
-
-

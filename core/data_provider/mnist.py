@@ -31,7 +31,7 @@ class mnist(Dataset):
         self.patch_size = configs.patch_size
         self.img_width = configs.img_width
         self.img_height = configs.img_height
-        self.img_channel = configs.img_channel
+        self.in_channel = configs.in_channel
         if self.mode == 'train':
             print('Loading train dataset')
             self.path = data_train_path

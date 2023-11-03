@@ -64,7 +64,7 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
             configs.total_length - configs.input_length - 1,
             configs.img_height // configs.patch_size,
             configs.img_width // configs.patch_size,
-            configs.patch_size ** 2 * configs.img_channel))
+            configs.patch_size ** 2 * configs.in_channel))
 
         img_gen = model.test(data, real_input_flag)
         img_gen = img_gen.transpose(0, 1, 3, 4, 2)  # * 0.5 + 0.5
@@ -118,9 +118,9 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
         if (is_valid  and epoch % configs.sample_interval == 0 and batch_id <= configs.num_save_samples) or not is_valid:
             res_width = configs.img_width
             res_height = configs.img_height
-            img = np.ones((2 * res_height, configs.total_length * res_width, configs.img_channel))
+            img = np.ones((2 * res_height, configs.total_length * res_width, configs.in_channel))
 
-            video_data = np.zeros((res_height, res_width*2, configs.img_channel, configs.total_length))
+            video_data = np.zeros((res_height, res_width*2, configs.in_channel, configs.total_length))
             video_name = os.path.join(res_path, 'movie', str(batch_id).zfill(2) + '.mp4')
             writer = skvideo.io.FFmpegWriter(video_name, inputdict={'-r':'1'}, outputdict={'-r':'1','-pix_fmt':'yuv420p','-vcodec': 'libx264'})
 
@@ -157,7 +157,7 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
                     cv2.putText(frame, text=txt_lpips, org=(517,95), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
                 """
 
-                if configs.img_channel == 1:
+                if configs.in_channel == 1:
                     frame = np.repeat(frame, 3).reshape(res_height, res_width*2, 3)
 
                 writer.writeFrame(frame)
@@ -199,29 +199,29 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
         json.dump(result_json, f, indent=4)
 
     print()
-    print('----------------------------------------------------------------------------------------------------')
+    print('------------------------------------------------------------------------------------------')
     for i in range(output_length):
         print('|    ' + str(i+1) + '    ', end='')
     print('|')
 
 
-    print('| -- *MSE  per frame: ' + str(avg_mse) + ' ------------------------------------------------------------')
+    print('| -- *MSE  per frame: ' + str(avg_mse) + ' ---------------------------------------------------')
     for i in range(output_length):
-        print('| ' + str(img_mse[i])[:7] + ' ', end='')
+        print('| ' + str(img_mse[i])[:5] + ' ', end='')
     print('|')
 
-    print('| --  *PSNR  per frame: ' + str(avg_psnr) + ' ---------------------------------------------------------')
+    print('| --  *PSNR  per frame: ' + str(avg_psnr) + ' -----------------------------------------------')
     for i in range(output_length):
-        print('| ' + str(img_psnr[i])[:7] + ' ', end='')
+        print('| ' + str(img_psnr[i])[:5] + ' ', end='')
     print('|')
 
-    print('| -- *SSIM per frame: ' + str(avg_ssim) + ' ----------------------------------------------------------')
+    print('| -- *SSIM per frame: ' + str(avg_ssim) + ' -------------------------------------------------')
     for i in range(output_length):
-        print('| ' + str(img_ssim[i])[:7] + ' ', end='')
+        print('| ' + str(img_ssim[i])[:5] + ' ', end='')
     print('|')
 
-    print('| -- *LPIPS per frame: ' + str(avg_lpips) + ' ----------------------------------------------------------')
+    print('| -- *LPIPS per frame: ' + str(avg_lpips) + ' --------------------------------------------------')
     for i in range(output_length):
-        print('| ' + str(img_lpips[i])[:7] + ' ', end='')
+        print('| ' + str(img_lpips[i])[:5] + ' ', end='')
     print('|')
-    print('----------------------------------------------------------------------------------------------------')
+    print('----------------------------------------------------------------------------------------')

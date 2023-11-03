@@ -38,27 +38,46 @@ class MAUCell(nn.Module):
 
         self.softmax = nn.Softmax(dim=0)
 
-    def forward(self, T_t, S_t, t_att, s_att):
-        s_next = self.conv_s_next(S_t)
-        t_next = self.conv_t_next(T_t)
+    def forward(self, T_prev, S_lower, T_att, S_att):
+        # INPUTS:
+        # T_prev: T_(k)_(t-1) in paper
+        # S_lower: S_(k-1)_(t) in paper
+        # T_att: T_(k)_(t-j) in paper
+        # S_att: S_(k-1)_(t) in paper
+        
+        # -------------- Attention Module --------------
+        S_lower = self.conv_s_next(S_lower)
+
+        # (3) in paper
         weights_list = []
         for i in range(self.tau):
-            weights_list.append((s_att[i] * s_next).sum(dim=(1, 2, 3)) / math.sqrt(self.d))
+            weights_list.append((S_att[i] * S_lower).sum(dim=(1, 2, 3)) / math.sqrt(self.d))
         weights_list = torch.stack(weights_list, dim=0)
         weights_list = torch.reshape(weights_list, (*weights_list.shape, 1, 1, 1))
         weights_list = self.softmax(weights_list)
-        T_trend = t_att * weights_list
-        T_trend = T_trend.sum(dim=0)
-        t_att_gate = torch.sigmoid(t_next)
-        T_fusion = T_t * t_att_gate + (1 - t_att_gate) * T_trend
-        T_concat = self.conv_t(T_fusion)
-        S_concat = self.conv_s(S_t)
-        t_g, t_t, t_s = torch.split(T_concat, self.num_hidden, dim=1)
-        s_g, s_t, s_s = torch.split(S_concat, self.num_hidden, dim=1)
-        T_gate = torch.sigmoid(t_g)
-        S_gate = torch.sigmoid(s_g)
-        T_new = T_gate * t_t + (1 - T_gate) * s_t
-        S_new = S_gate * s_s + (1 - S_gate) * t_s
-        if self.cell_mode == 'residual':
-            S_new = S_new + S_t
-        return T_new, S_new
+
+        # (4) in paper
+        T_att = (T_att * weights_list).sum(dim=0)
+
+        # (5) in paper
+        T_prev  = self.conv_t_next(T_prev)
+        U_f = torch.sigmoid(S_lower)
+        T_AMI = T_prev * U_f + (1 - U_f) * T_att 
+
+        # -------------- Fusion Module --------------
+        
+        # W_ttやW_ssなどをかける計算
+        # ここでの添字は分割の順番を表すものであり、tは時系列番号のtに関係がない
+        T_AMI_wu, T_AMI_wt, T_AMI_ws = torch.split(self.conv_t(T_AMI), self.num_hidden, dim=1)
+        S_wu, S_wt, S_ws             = torch.split(self.conv_s(S_lower)   , self.num_hidden, dim=1)
+        
+        #(6) in paper     
+        U_t = torch.sigmoid(T_AMI_wu)
+        U_s = torch.sigmoid(S_wu)
+    
+        # (7) in paper
+        T_out = U_t * T_AMI_wt+ (1 - U_t) * S_wt
+        gamma = 0 if self.cell_mode == 'residual' else 1
+        S_out = U_s * S_ws+ (1 - U_s) * T_AMI_ws + gamma * S_lower
+
+        return T_out, S_out
