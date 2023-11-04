@@ -3,9 +3,9 @@ import argparse
 def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'sun'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_train.npy' #Docker側でマウント
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_4h_512px_sqrt_2023/aia211_4h_512px_sqrt_2023_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_tuned_3wave/aia211_tuned_3wave_train.npy' #Docker側でマウント
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_tuned_3wave/aia211_tuned_3wave_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_tuned_3wave/aia211_tuned_3wave_test.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
@@ -14,7 +14,7 @@ def configs(args):
     if args.sr_size                == None : args.sr_size                 = 4
     if args.patch_size             == None : args.patch_size              = 4
     if args.in_channel             == None : args.in_channel              = 1
-    if args.out_channels           == None : args.out_channel             = 1
+    if args.out_channel            == None : args.out_channel             = 1
     if args.alpha                  == None : args.alpha                   = 1
     if args.num_workers            == None : args.num_workers             = 2
     if args.num_hidden             == None : args.num_hidden              = 64

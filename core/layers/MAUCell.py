@@ -76,8 +76,8 @@ class MAUCell(nn.Module):
         U_s = torch.sigmoid(S_wu)
     
         # (7) in paper
-        T_out = U_t * T_AMI_wt+ (1 - U_t) * S_wt
-        gamma = 0 if self.cell_mode == 'residual' else 1
+        T_out = U_t * T_AMI_wt + (1 - U_t) * S_wt
+        gamma = 1 if self.cell_mode == 'residual' else 0
         S_out = U_s * S_ws+ (1 - U_s) * T_AMI_ws + gamma * S_lower
 
         return T_out, S_out
