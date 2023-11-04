@@ -61,15 +61,15 @@ class MAUCell(nn.Module):
 
         # (5) in paper
         T_prev  = self.conv_t_next(T_prev)
-        U_f = torch.sigmoid(S_lower)
+        U_f = torch.sigmoid(T_prev)
         T_AMI = T_prev * U_f + (1 - U_f) * T_att 
 
         # -------------- Fusion Module --------------
         
         # W_ttやW_ssなどをかける計算
         # ここでの添字は分割の順番を表すものであり、tは時系列番号のtに関係がない
-        T_AMI_wu, T_AMI_wt, T_AMI_ws = torch.split(self.conv_t(T_AMI), self.num_hidden, dim=1)
-        S_wu, S_wt, S_ws             = torch.split(self.conv_s(S_lower)   , self.num_hidden, dim=1)
+        T_AMI_wu, T_AMI_wt, T_AMI_ws = torch.split(self.conv_t(T_AMI),   self.num_hidden, dim=1)
+        S_wu, S_wt, S_ws             = torch.split(self.conv_s(S_lower), self.num_hidden, dim=1)
         
         #(6) in paper     
         U_t = torch.sigmoid(T_AMI_wu)
