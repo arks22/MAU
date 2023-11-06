@@ -57,6 +57,5 @@ class sun(Dataset):
 
         if self.transform:
             sample = preprocess.reshape_patch(sample, self.patch_size)
-            #print('transform')
             sample = self.transform(sample)
         return sample
