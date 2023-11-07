@@ -60,10 +60,10 @@ class RNN(nn.Module):
             decoders.append(decoder)
         self.decoders = nn.ModuleList(decoders)
 
-        self.srcnn = nn.Sequential(nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0))
+        self.srcnn = nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
         #self.srcnn = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
-        self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
-        self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
+        #self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
+        #self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
 
 
     def forward(self, frames, mask_true):

@@ -201,7 +201,7 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
     print()
     print('------------------------------------------------------------------------------------------')
     for i in range(output_length):
-        print('|    ' + str(i+1) + '    ', end='')
+        print('|   ' + str(i+1) + '   ', end='')
     print('|')
 
 

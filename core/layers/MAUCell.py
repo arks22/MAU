@@ -60,8 +60,7 @@ class MAUCell(nn.Module):
         T_att = (T_att * weights_list).sum(dim=0)
 
         # (5) in paper
-        T_prev  = self.conv_t_next(T_prev)
-        U_f = torch.sigmoid(T_prev)
+        U_f = torch.sigmoid(self.conv_t_next(T_prev))
         T_AMI = T_prev * U_f + (1 - U_f) * T_att 
 
         # -------------- Fusion Module --------------
@@ -74,10 +73,11 @@ class MAUCell(nn.Module):
         #(6) in paper     
         U_t = torch.sigmoid(T_AMI_wu)
         U_s = torch.sigmoid(S_wu)
-    
+
         # (7) in paper
         T_out = U_t * T_AMI_wt + (1 - U_t) * S_wt
-        gamma = 1 if self.cell_mode == 'residual' else 0
-        S_out = U_s * S_ws+ (1 - U_s) * T_AMI_ws + gamma * S_lower
+        S_out = U_s * S_ws + (1 - U_s) * T_AMI_ws
+        if self.cell_mode == 'residual':
+            S_out = S_out + S_lower
 
         return T_out, S_out

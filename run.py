@@ -230,8 +230,8 @@ def train_wrapper(model):
             eta, real_input_flag = schedule_sampling(eta, itr)
             loss = list(trainer.train(model, ims, real_input_flag, args, itr))
 
-            time_itr = round(time.time() - time_itr_start, 3)
-            print('\ritr:', itr - ((epoch - 1) * train_size), str(time_itr).ljust(5,'0'), 's | L1 loss:', loss[0], 'L2 loss:', loss[1], end='')
+            time_itr = str(round(time.time() - time_itr_start, 3)).ljust(5,'0')
+            print(f'\ritr: {itr - ((epoch - 1) * train_size)} {time_itr} s | L2 loss: {loss[1]}', end='')
             itr += 1
 
         trainer.test(model, val_input_handle, args, epoch, TIMESTAMP, True)
