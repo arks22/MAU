@@ -3,9 +3,15 @@ import argparse
 def configs(args):
     if args.model_name             == None : args.model_name              = 'mau'
     if args.dataset                == None : args.dataset                 = 'sun'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_tuned_3wave/aia211_tuned_3wave_train.npy' #Docker側でマウント
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_tuned_3wave/aia211_tuned_3wave_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_tuned_3wave/aia211_tuned_3wave_test.npy'
+    #if args.data_train_path        == None : args.data_train_path         = 'data/aia211_tuned_3wave/aia211_tuned_3wave_train.npy' #Docker側でマウント
+    #if args.data_val_path          == None : args.data_val_path           = 'data/aia211_tuned_3wave/aia211_tuned_3wave_val.npy'
+    #if args.data_test_path         == None : args.data_test_path          = 'data/aia211_tuned_3wave/aia211_tuned_3wave_test.npy'
+    #if args.data_train_path        == None : args.data_train_path         = 'data/aia211/aia211_train.npy' #Docker側でマウント
+    #if args.data_val_path          == None : args.data_val_path           = 'data/aia211/aia211_val.npy'
+    #if args.data_test_path         == None : args.data_test_path          = 'data/aia211/aia211_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_exp/aia211_exp_train.npy' #Docker側でマウントj
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_exp/aia211_exp_val.npy'
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_exp/aia211_exp_test.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24

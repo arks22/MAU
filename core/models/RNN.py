@@ -118,15 +118,15 @@ class RNN(nn.Module):
                 for i in range(self.num_layers):
                     zeros = torch.zeros([batch_size, self.num_hidden[i], height, width]).to(self.configs.device)
                     T_t.append(zeros)
-            S_t = frames_feature
 
+            S_t = frames_feature
             # num_layersで指定した階層分MAUをスタック
             for k in range(self.num_layers):
                 T_att = torch.stack(T_pre[k][-self.tau:], dim=0)
                 S_att = torch.stack(S_pre[k][-self.tau:], dim=0)
-                S_pre[i].append(S_t)
-                T_t[i], S_t = self.cell_list[k](T_t[k], S_t, T_att, S_att) #MAUのforward
-                T_pre[i].append(T_t[k])
+                S_pre[k].append(S_t)
+                T_t[k], S_t = self.cell_list[k](T_t[k], S_t, T_att, S_att) #MAUのforward
+                T_pre[k].append(T_t[k])
             out = S_t
 
             # デコーダーをスタック
