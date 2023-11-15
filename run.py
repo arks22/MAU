@@ -107,7 +107,7 @@ def train_wrapper(args, model):
             json.dump(result_json, f, indent=4)
 
         plot_loss(args, TIMESTAMP, train_size)
-        model.save(args, TIMESTAMP, itr)
+        model.save(TIMESTAMP, itr)
         time_epoch = round((time.time() - time_epoch_start) / 60, 3)
         pred_finish_time = time_epoch * (args.max_epoches - epoch) / 60
         print(f'{time_epoch} m/epoch | ETA: {round(pred_finish_time,2)} h')
@@ -119,7 +119,7 @@ def train_wrapper(args, model):
 
 
 # テスト
-def test_pretrained(model):
+def test_pretrained(args, model):
     model.load(args.pretrained_model)
     test_input_handle = datasets_factory.data_provider(configs=args, dataset=args.dataset, path=args.data_test_path, batch_size=1, mode = 'test', is_shuffle=False)
     trainer.test(model, test_input_handle, args, 1, TIMESTAMP, False)

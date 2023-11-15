@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 from core.models import RNN
+import torch.optim.lr_scheduler as lr_scheduler
 
 
 class Model(object):
@@ -14,13 +15,11 @@ class Model(object):
         self.patch_channel = configs.in_channel * (configs.patch_size ** 2)
         self.num_layers = configs.num_layers
 
-        networks_map = {
-            'mau': RNN.RNN,
-        }
+        networks_map = { 'mau': RNN.RNN }
         num_hidden = []
 
         # MAUセルの深さに合わせてCNNのチャンネル数を設定
-        num_hidden = [configs.num_hidden for i in range(configs.num_layers)]
+        num_hidden = [configs.num_hidden for i in range(configs.num_layers)] #[ 64, * 16]
 
         self.num_hidden = num_hidden
         if configs.model_name in networks_map:
@@ -30,6 +29,8 @@ class Model(object):
             raise ValueError('Name of network unknown %s' % configs.model_name)
 
         self.optimizer = Adam(self.network.parameters(), lr=configs.lr)
+        self.scheduler = lr_scheduler.ExponentialLR(self.optimizer, gamma=configs.lr_decay)
+
         self.MSE_criterion = nn.MSELoss()
         self.L1_loss = nn.L1Loss()
 
@@ -65,6 +66,7 @@ class Model(object):
         self.optimizer.step()
 
         if itr >= self.configs.sampling_stop_iter and itr % self.configs.delay_interval == 0:
+            self.scheduler.step()
             print('Lr decay to {:.8f}'.format(self.optimizer.param_groups[0]['lr']))
 
         return next_frames, loss_l1.detach().cpu().numpy(), loss_l2.detach().cpu().numpy()

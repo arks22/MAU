@@ -21,7 +21,7 @@ def set_args():
     parser.add_argument('--alpha',                  type=float )
     parser.add_argument('--model_name',             type=str)   
     parser.add_argument('--num_workers',            type=int)   
-    parser.add_argument('--num_hidden',             type=int)   
+    parser.add_argument('--num_hidden',             type=int, help='MAUの入出力チャンネル数')   
     parser.add_argument('--num_layers',             type=int, help='MAUセルの深さ(スタック数)を決定')   
     parser.add_argument('--num_heads',              type=int)   
     parser.add_argument('--filter_size',            type=int)   

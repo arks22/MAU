@@ -15,8 +15,8 @@ def configs(args):
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
-    if args.img_height             == None : args.img_height              = 512
-    if args.img_width              == None : args.img_width               = 512
+    if args.img_height             == None : args.img_height              = 256
+    if args.img_width              == None : args.img_width               = 256
     if args.sr_size                == None : args.sr_size                 = 4
     if args.patch_size             == None : args.patch_size              = 4
     if args.in_channel             == None : args.in_channel              = 1

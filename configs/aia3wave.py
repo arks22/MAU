@@ -12,7 +12,7 @@ def configs(args):
     if args.img_height             == None : args.img_height              = 512
     if args.img_width              == None : args.img_width               = 512
     if args.sr_size                == None : args.sr_size                 = 4
-    if args.patch_size             == None : args.patch_size              = 4
+    if args.patch_size             == None : args.patch_size              = 8
     if args.in_channel             == None : args.in_channel              = 3
     if args.out_channel            == None : args.out_channel             = 3
     if args.alpha                  == None : args.alpha                   = 1
@@ -29,8 +29,8 @@ def configs(args):
     if args.model_mode             == None : args.model_mode              = 'recall'
     if args.lr                     == None : args.lr                      = 5e-4
     if args.lr_decay               == None : args.lr_decay                = 0.90
-    if args.delay_interval         == None : args.delay_interval          = 100000
-    if args.batch_size             == None : args.batch_size              = 4 
+    if args.delay_interval         == None : args.delay_interval          = 225 * 5
+    if args.batch_size             == None : args.batch_size              = 8
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5
     if args.num_save_samples       == None : args.num_save_samples        = 10
@@ -40,7 +40,7 @@ def configs(args):
     if args.save_dir               == None : args.save_dir                = 'checkpoints/aia3wave/'
     if args.gen_frm_dir            == None : args.gen_frm_dir             = 'results/aia3wave/'
     if args.scheduled_sampling     == None : args.scheduled_sampling      = True
-    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 20000
+    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 10000
     if args.sampling_start_value   == None : args.sampling_start_value    = 1.0
     if args.sampling_changing_rate == None : args.sampling_changing_rate  = 0.00005
 
