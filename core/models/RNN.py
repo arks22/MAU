@@ -9,7 +9,7 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
         self.configs = configs
         self.frame_channel = configs.patch_size * configs.patch_size * configs.in_channel
-        self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
+        #self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
         self.num_layers = num_layers
         self.num_hidden = num_hidden
         self.tau = configs.tau
@@ -19,8 +19,8 @@ class RNN(nn.Module):
             raise AssertionError
         cell_list = []
 
-        width = configs.img_width // configs.patch_size // configs.sr_size
-        height = configs.img_height // configs.patch_size // configs.sr_size
+        width = configs.img_width // configs.patch_size // configs.sr_size  # 512 // 4 // 4 = 32
+        height = configs.img_height // configs.patch_size // configs.sr_size # 512 // 4 // 4 = 32
         # print(width)
 
         for i in range(num_layers):

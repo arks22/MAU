@@ -3,7 +3,6 @@ import numpy as np
 from core.data_provider import datasets_factory
 from core.models.model_factory import Model
 import core.trainer as trainer
-import pynvml
 import time
 import datetime
 from tqdm import tqdm
@@ -16,8 +15,6 @@ from run_utils.set_args import set_args
 # python3 run.py --config=aia211
 
 TIMESTAMP = datetime.datetime.now().strftime('%Y%m%d%H%M')
-
-pynvml.nvmlInit()
 
 def schedule_sampling(args, eta, itr):
     zeros = np.zeros((args.batch_size,
@@ -87,8 +84,6 @@ def train_wrapper(args, model):
         with tqdm(total=train_size, desc="Train", leave=False) as pbar:
             for ims in train_input_handle:
                 #if itr > 3: break ############ DEBUG ##############
-                time_itr_start = time.time() 
-                batch_size = ims.shape[0]
                 eta, real_input_flag = schedule_sampling(args, eta, itr)
                 loss = list(trainer.train(model, ims, real_input_flag, args, itr))
 
