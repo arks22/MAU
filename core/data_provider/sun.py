@@ -39,7 +39,7 @@ class sun(Dataset):
 
         data_size = os.path.getsize(self.path)
         
-        if data_size > 40 * 1024 * 1024 * 1024:
+        if data_size > 20 * 1024 * 1024 * 1024:
             # 40gbよりデカい場合,メモリマップで読み込む
             self.data = np.load(self.path, mmap_mode='r')
             print('Loading with memory mapping', mode, 'dataset finished, with size:', self.data.shape[1])

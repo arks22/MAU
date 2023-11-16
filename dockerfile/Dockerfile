@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.6.1-devel-ubuntu18.04
+FROM nvidia/cuda:12.2.0-devel-ubuntu20.04
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update

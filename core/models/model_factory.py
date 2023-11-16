@@ -30,7 +30,6 @@ class Model(object):
 
         self.optimizer = Adam(self.network.parameters(), lr=configs.lr)
         self.scheduler = lr_scheduler.ExponentialLR(self.optimizer, gamma=configs.lr_decay)
-
         self.MSE_criterion = nn.MSELoss()
         self.L1_loss = nn.L1Loss()
 

@@ -80,6 +80,8 @@ def train_wrapper(args, model):
         print(f"------------- epoch: {epoch} / {args.max_epoches} ----------------")
         print(f"Train with {train_size}  batch")
         time_epoch_start = time.time() 
+        l1_list, l2_list = [], []
+
 
         with tqdm(total=train_size, desc="Train", leave=False) as pbar:
             for ims in train_input_handle:
@@ -88,6 +90,8 @@ def train_wrapper(args, model):
                 loss = list(trainer.train(model, ims, real_input_flag, args, itr))
 
                 pbar.set_postfix({"L2 Loss": loss[1]})
+                l1_list.append(loss[0].item())
+                l2_list.append(loss[1].item())
                 pbar.update()
                 itr += 1
                 
