@@ -32,7 +32,7 @@ def configs(args):
     if args.model_mode             == None : args.model_mode              = 'recall'
     if args.lr                     == None : args.lr                      = 1e-3
     if args.lr_decay               == None : args.lr_decay                = 0.97
-    if args.delay_interval         == None : args.delay_interval          = 224 # per 2 epocs
+    if args.delay_interval         == None : args.delay_interval          = 112# per 1 epocs
     if args.batch_size             == None : args.batch_size              = 8
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5

@@ -83,16 +83,18 @@ def train_wrapper(args, model):
         print(f"------------- epoch: {epoch} / {args.max_epoches} ----------------")
         print(f"Train with {train_size}  batch")
         time_epoch_start = time.time() 
+        l1_list, l2_list = [], []
+
 
         with tqdm(total=train_size, desc="Train", leave=False) as pbar:
             for ims in train_input_handle:
                 #if itr > 3: break ############ DEBUG ##############
-                time_itr_start = time.time() 
-                batch_size = ims.shape[0]
                 eta, real_input_flag = schedule_sampling(args, eta, itr)
                 loss = list(trainer.train(model, ims, real_input_flag, args, itr))
 
                 pbar.set_postfix({"L2 Loss": loss[1]})
+                l1_list.append(loss[0].item())
+                l2_list.append(loss[1].item())
                 pbar.update()
                 itr += 1
                 
@@ -102,6 +104,7 @@ def train_wrapper(args, model):
             result_json = json.load(f)
             result_json['valid'][epoch-1]['summary']['l1loss'] = loss[0].item()
             result_json['valid'][epoch-1]['summary']['l2loss'] = loss[1].item()
+
 
         with open(os.path.join(gen_path, 'results.json'), 'w') as f:
             json.dump(result_json, f, indent=4)

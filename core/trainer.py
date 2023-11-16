@@ -74,14 +74,18 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
         img_out = img_gen[:, -output_length:, :]
 
         for i in range(output_length):
-            x = test_ims[:, i + configs.input_length, :]
+            gt = test_ims[:, i + configs.input_length, :]
+
             gx = img_out[:, i, :]
             gx = np.maximum(gx, 0)
             gx = np.minimum(gx, 1)
-            mse_score = np.square(x - gx).sum() / batch_size
-            # これ間違ってそう
+            
+            # MSEの計算
+            mse_score = np.square(gt - gx).mean() / batch_size
 
-            t1 = torch.from_numpy((x - 0.5) / 0.5).to(configs.device)
+
+            # LPIPSの計算
+            t1 = torch.from_numpy((gt - 0.5) / 0.5).to(configs.device)
             t1 = t1.permute((0, 3, 1, 2))
             t2 = torch.from_numpy((gx - 0.5) / 0.5).to(configs.device)
             t2 = t2.permute((0, 3, 1, 2))
@@ -94,15 +98,17 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
             lpips_score = d.mean()
             lpips_score = lpips_score.detach().cpu().numpy()
 
+            # PSNRの計算
             psnr_score = 0
             for sample_id in range(batch_size):
-                mse_tmp = np.square(x[sample_id, :] - gx[sample_id, :]).mean()
+                mse_tmp = np.square(gt[sample_id, :] - gx[sample_id, :]).mean()
                 psnr_score += 10 * np.log10(1 / mse_tmp)
             psnr_score /= (batch_size)
 
+            # SSIMの計算
             ssim_score = 0
             for b in range(batch_size):
-                ssim_score += compare_ssim(x[b, :], gx[b, :], channel_axis = -1, data_range=1)
+                ssim_score += compare_ssim(gt[b, :], gx[b, :], channel_axis = -1, data_range=1)
             ssim_score /= batch_size
 
             img_mse[i] += mse_score
@@ -143,20 +149,6 @@ def test(model, input_handle, configs, epoch, timestamp, is_valid):
 
             for i in range(configs.total_length):
                 frame = video_data[:,:,:,i].astype(np.uint8)
-
-                """
-                color = (255, 255, 255)
-                cv2.putText(frame, text = 't = ' + str(i+1), org=(20,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX,  fontScale=0.8,  color=color,  thickness=1)
-                if i >= configs.input_length:
-                    txt_mse = 'MSE: ' + str(batch_scores[i-configs.input_length]['mse'])[:4]
-                    txt_psnr = 'PSNR: ' + str(batch_scores[i-configs.input_length]['psnr'])[:4]
-                    txt_ssim = 'SSIM: ' + str(batch_scores[i-configs.input_length]['ssim'])[:4]
-                    txt_lpips = 'LPIPS: ' + str(batch_scores[i-configs.input_length]['lpips'])[:4]
-                    cv2.putText(frame, text=txt_mse, org=(517,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
-                    cv2.putText(frame, text=txt_psnr, org=(517,65), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
-                    cv2.putText(frame, text=txt_ssim, org=(517,80), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
-                    cv2.putText(frame, text=txt_lpips, org=(517,95), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,  color=color,  thickness=1)
-                """
 
                 if configs.in_channel == 1:
                     frame = np.repeat(frame, 3).reshape(res_height, res_width*2, 3)

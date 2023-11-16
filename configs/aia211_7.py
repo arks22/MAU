@@ -30,10 +30,10 @@ def configs(args):
     if args.tau                    == None : args.tau                     = 5
     if args.cell_mode              == None : args.cell_mode               = 'residual'
     if args.model_mode             == None : args.model_mode              = 'recall'
-    if args.lr                     == None : args.lr                      = 1e-3
+    if args.lr                     == None : args.lr                      = 5e-4
     if args.lr_decay               == None : args.lr_decay                = 0.97
-    if args.delay_interval         == None : args.delay_interval          = 224 # per 2 epocs
-    if args.batch_size             == None : args.batch_size              = 8
+    if args.delay_interval         == None : args.delay_interval          = 225# per 1 epocs
+    if args.batch_size             == None : args.batch_size              = 4
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5
     if args.num_save_samples       == None : args.num_save_samples        = 10
@@ -43,7 +43,7 @@ def configs(args):
     if args.save_dir               == None : args.save_dir                = 'checkpoints/aia211/'
     if args.gen_frm_dir            == None : args.gen_frm_dir             = 'results/aia211/'
     if args.scheduled_sampling     == None : args.scheduled_sampling      = True
-    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 112
+    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 225
     if args.sampling_start_value   == None : args.sampling_start_value    = 1.0
     if args.sampling_changing_rate == None : args.sampling_changing_rate  = 0.00005
 
