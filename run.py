@@ -105,7 +105,6 @@ def train_wrapper(args, model):
             result_json['valid'][epoch-1]['summary']['l1loss'] = loss[0].item()
             result_json['valid'][epoch-1]['summary']['l2loss'] = loss[1].item()
 
-
         with open(os.path.join(gen_path, 'results.json'), 'w') as f:
             json.dump(result_json, f, indent=4)
 

@@ -1,0 +1,8 @@
+numpy
+torch
+torchvision
+opencv-python
+nvidia-ml-py3
+lpips
+scikit-image
+tqdm

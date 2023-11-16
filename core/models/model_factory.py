@@ -15,13 +15,11 @@ class Model(object):
         self.patch_channel = configs.in_channel * (configs.patch_size ** 2)
         self.num_layers = configs.num_layers
 
-        networks_map = {
-            'mau': RNN.RNN,
-        }
+        networks_map = { 'mau': RNN.RNN }
         num_hidden = []
 
         # MAUセルの深さに合わせてCNNのチャンネル数を設定
-        num_hidden = [configs.num_hidden for i in range(configs.num_layers)]
+        num_hidden = [configs.num_hidden for i in range(configs.num_layers)] #[ 64, * 16]
 
         self.num_hidden = num_hidden
         if configs.model_name in networks_map:
