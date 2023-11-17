@@ -6,9 +6,9 @@ def configs(args):
     #if args.data_train_path        == None : args.data_train_path         = 'data/aia211_tuned_3wave/aia211_tuned_3wave_train.npy' #Docker側でマウント
     #if args.data_val_path          == None : args.data_val_path           = 'data/aia211_tuned_3wave/aia211_tuned_3wave_val.npy'
     #if args.data_test_path         == None : args.data_test_path          = 'data/aia211_tuned_3wave/aia211_tuned_3wave_test.npy'
-    if args.data_train_path        == None : args.data_train_path         = 'data/mini/aia211_exp_train_mini.npy' #Docker側でマウント
-    if args.data_val_path          == None : args.data_val_path           = 'data/mini/aia211_exp_val_mini.npy' 
-    if args.data_test_path         == None : args.data_test_path          = 'data/mini/aia211_exp_test_mini.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_256/aia211_exp_train_mini.npy' #Docker側でマウント
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_256/aia211_exp_val_mini.npy' 
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_256/aia211_exp_test_mini.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24

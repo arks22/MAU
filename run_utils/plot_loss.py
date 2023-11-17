@@ -43,12 +43,12 @@ def plot_loss(args, timestamp, train_size, finish_time=0):
     ax[0].text(1,8, '---------------------')
     ax[0].text(1,7, f'Epochs:  {args.max_epoches}')
     ax[0].text(1,6, f'Dataset {args.data_train_path}  with * {args.batch_size} batch * {train_size}')
-    ax[0].text(1,5, f'Resolution: {args.img_height}  * {args.img_width}')
-    ax[0].text(1,4, f'lr: {args.lr}, lr_decay: {args.lr_decay}, decay_interval: {args.delay_interval}, decay start at: {args.sampling_stop_iter}')
-    ax[0].text(1,3, f'Resolution: {args.img_height}  * {args.img_width}')
+    ax[0].text(1,5, f'Image : {args.img_height} px * {args.img_width} px * {args.in_channel} ch')
+    ax[0].text(1,3, f'lr: {args.lr}, lr_decay: {args.lr_decay}, decay_interval: {args.delay_interval}, decay start at: {args.sampling_stop_iter}')
+    ax[0].text(1,2, f'Resolution: {args.img_height}  * {args.img_width}')
 
     if not finish_time == 0:
-        ax[0].text(1,2, f'Time: {finish_time} h')
+        ax[0].text(1,1, f'Time: {finish_time} h')
 
     fig.patch.set_alpha(0)
     fig.tight_layout()
