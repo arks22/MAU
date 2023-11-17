@@ -6,12 +6,9 @@ def configs(args):
     #if args.data_train_path        == None : args.data_train_path         = 'data/aia211_tuned_3wave/aia211_tuned_3wave_train.npy' #Docker側でマウント
     #if args.data_val_path          == None : args.data_val_path           = 'data/aia211_tuned_3wave/aia211_tuned_3wave_val.npy'
     #if args.data_test_path         == None : args.data_test_path          = 'data/aia211_tuned_3wave/aia211_tuned_3wave_test.npy'
-    #if args.data_train_path        == None : args.data_train_path         = 'data/aia211/aia211_train.npy' #Docker側でマウント
-    #if args.data_val_path          == None : args.data_val_path           = 'data/aia211/aia211_val.npy'
-    #if args.data_test_path         == None : args.data_test_path          = 'data/aia211/aia211_test.npy'
-    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_exp/aia211_exp_train.npy' #Docker側でマウントj
-    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_exp/aia211_exp_val.npy'
-    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_exp/aia211_exp_test.npy'
+    if args.data_train_path        == None : args.data_train_path         = 'data/aia211_256/aia211_exp_train_mini.npy' #Docker側でマウント
+    if args.data_val_path          == None : args.data_val_path           = 'data/aia211_256/aia211_exp_val_mini.npy' 
+    if args.data_test_path         == None : args.data_test_path          = 'data/aia211_256/aia211_exp_test_mini.npy'
     if args.input_length           == None : args.input_length            = 12
     if args.real_length            == None : args.real_length             = 24
     if args.total_length           == None : args.total_length            = 24
@@ -34,9 +31,9 @@ def configs(args):
     if args.cell_mode              == None : args.cell_mode               = 'residual'
     if args.model_mode             == None : args.model_mode              = 'recall'
     if args.lr                     == None : args.lr                      = 5e-4
-    if args.lr_decay               == None : args.lr_decay                = 0.90
-    if args.delay_interval         == None : args.delay_interval          = 100000
-    if args.batch_size             == None : args.batch_size              = 4 
+    if args.lr_decay               == None : args.lr_decay                = 0.97
+    if args.delay_interval         == None : args.delay_interval          = 225# per 1 epocs
+    if args.batch_size             == None : args.batch_size              = 4
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5
     if args.num_save_samples       == None : args.num_save_samples        = 10
@@ -46,7 +43,7 @@ def configs(args):
     if args.save_dir               == None : args.save_dir                = 'checkpoints/aia211/'
     if args.gen_frm_dir            == None : args.gen_frm_dir             = 'results/aia211/'
     if args.scheduled_sampling     == None : args.scheduled_sampling      = True
-    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 200000
+    if args.sampling_stop_iter     == None : args.sampling_stop_iter      = 200000 #学習率を変更しない
     if args.sampling_start_value   == None : args.sampling_start_value    = 1.0
     if args.sampling_changing_rate == None : args.sampling_changing_rate  = 0.00005
 

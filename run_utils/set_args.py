@@ -16,7 +16,7 @@ def set_args():
     parser.add_argument('--img_width',              type=int)
     parser.add_argument('--sr_size',                type=int, help='Encoder-Decoderモデルの層の深さを決定')
     parser.add_argument('--in_channel',             type=int, help='入力チャンネル数')
-    parser.add_argument('--out_channel',            type=int)
+    parser.add_argument('--out_channel',            type=int, help='出力チャンネル数')
     parser.add_argument('--patch_size',             type=int)
     parser.add_argument('--alpha',                  type=float )
     parser.add_argument('--model_name',             type=str)   

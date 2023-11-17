@@ -32,14 +32,12 @@ def plot_loss(args, timestamp, train_size, finish_time=0):
     ax.append(fig.add_subplot(gs[1, 1]))
     ax.append(fig.add_subplot(gs[2, 1]))
     ax.append(fig.add_subplot(gs[1, 2]))
-    ax.append(fig.add_subplot(gs[2, 2]))
 
-    ax[1].plot(l1loss, color='r', lw=0.75, label='train loss')
-    ax[2].plot(l2loss, color='b', lw=0.75, label='train L2_loss')
-    ax[3].plot(mse, color='g', lw=0.75, label='valid mse')
-    ax[4].plot(psnr, color='y', lw=0.75, label='valid psnr')
-    ax[5].plot(ssim, color='m', lw=0.75, label='valid ssim')
-    ax[6].plot(lpips, color='c', lw=0.75, label='valid lpips')
+    ax[1].plot(l2loss, color='b', lw=0.75, label='train L2_loss')
+    ax[2].plot(mse, color='g', lw=0.75, label='valid mse')
+    ax[3].plot(psnr, color='y', lw=0.75, label='valid psnr')
+    ax[4].plot(ssim, color='m', lw=0.75, label='valid ssim')
+    ax[5].plot(lpips, color='c', lw=0.75, label='valid lpips')
 
     for x in ax:
         x.grid()
@@ -50,10 +48,13 @@ def plot_loss(args, timestamp, train_size, finish_time=0):
     ax[0].text(1,9, f'MAU {timestamp}')
     ax[0].text(1,8, '---------------------')
     ax[0].text(1,7, f'Epochs:  {args.max_epoches}')
-    ax[0].text(1,6, f'Dataset {args.dataset}  with size {train_size} * {args.batch_size}')
+    ax[0].text(1,6, f'Dataset {args.data_train_path}  with * {args.batch_size} batch * {train_size}')
     ax[0].text(1,5, f'Resolution: {args.img_height}  * {args.img_width}')
+    ax[0].text(1,4, f'lr: {args.lr}, lr_decay: {args.lr_decay}, decay_interval: {args.delay_interval}, decay start at: {args.sampling_stop_iter}')
+    ax[0].text(1,3, f'Resolution: {args.img_height}  * {args.img_width}')
+
     if not finish_time == 0:
-        ax[0].text(1,3, f'Time: {finish_time} h')
+        ax[0].text(1,2, f'Time: {finish_time} h')
 
     fig.patch.set_alpha(0)
     fig.tight_layout()

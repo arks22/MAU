@@ -7,6 +7,7 @@ import time
 import datetime
 from tqdm import tqdm
 import json
+import pynvml
 
 from run_utils.plot_loss import plot_loss
 from run_utils.set_args import set_args
@@ -15,6 +16,8 @@ from run_utils.set_args import set_args
 # python3 run.py --config=aia211
 
 TIMESTAMP = datetime.datetime.now().strftime('%Y%m%d%H%M')
+
+pynvml.nvmlInit()
 
 def schedule_sampling(args, eta, itr):
     zeros = np.zeros((args.batch_size,
@@ -99,8 +102,9 @@ def train_wrapper(args, model):
 
         with open(os.path.join(gen_path, 'results.json'), 'r') as f:
             result_json = json.load(f)
-            result_json['valid'][epoch-1]['summary']['l1loss'] = loss[0].item()
-            result_json['valid'][epoch-1]['summary']['l2loss'] = loss[1].item()
+            result_json['valid'][epoch-1]['summary']['l1loss'] = sum(l1_list) / len(l1_list)
+            result_json['valid'][epoch-1]['summary']['l2loss'] = sum(l2_list) / len(l2_list)
+
 
         with open(os.path.join(gen_path, 'results.json'), 'w') as f:
             json.dump(result_json, f, indent=4)

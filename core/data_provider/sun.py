@@ -6,18 +6,6 @@ import numpy as np
 from core.utils import preprocess
 
 
-"""
-class Norm(object):
-    def __init__(self, max_val=255.):
-        self.max_val = max_val
-
-    def __call__(self, sample):
-        video_x = sample
-        new_video_x = video_x / self.max_val
-        return new_video_x
-"""
-
-
 class ToTensor(object):
     def __call__(self, sample):
         video_x = sample
@@ -47,8 +35,10 @@ class sun(Dataset):
             self.data = np.load(self.path)
             print('Loading', mode, 'dataset finished, with size:', self.data.shape[1])
 
+
     def __len__(self):
         return self.data.shape[1]
+
 
     def __getitem__(self, idx):
         # DataLoaderオブジェクトを作成する際にこのsunクラスのインスタンスを渡すと、

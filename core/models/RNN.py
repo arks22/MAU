@@ -9,7 +9,7 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
         self.configs = configs
         self.frame_channel = configs.patch_size * configs.patch_size * configs.in_channel
-        #self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
+        self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
         self.num_layers = num_layers
         self.num_hidden = num_hidden
         self.tau = configs.tau
@@ -29,7 +29,7 @@ class RNN(nn.Module):
         self.cell_list = nn.ModuleList(cell_list)
 
         # Encoder
-        n = int(math.log2(configs.sr_size))
+        n = int(math.log2(configs.sr_size)) # 2
         encoders = []
         encoder = nn.Sequential()
         encoder.add_module(name='encoder_t_conv{0}'.format(-1), module=nn.Conv2d(in_channels=self.frame_channel, out_channels=self.num_hidden[0], stride=1, padding=0, kernel_size=1))
@@ -60,8 +60,8 @@ class RNN(nn.Module):
             decoders.append(decoder)
         self.decoders = nn.ModuleList(decoders)
 
-        self.srcnn = nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
-        #self.srcnn = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
+        #self.srcnn = nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
+        self.srcnn = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
         #self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
         #self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
 
@@ -79,8 +79,8 @@ class RNN(nn.Module):
         """
         mask_true = mask_true.permute(0, 1, 4, 2, 3).contiguous()
         batch_size = frames.shape[0]
-        height = frames.shape[3] // self.configs.sr_size
-        width = frames.shape[4] // self.configs.sr_size
+        height = frames.shape[3] // self.configs.sr_size # 512 // 4 = 128
+        width = frames.shape[4] // self.configs.sr_size # 512 // 4 = 128
         frame_channels = frames.shape[2]
         next_frames = []
         T_t = []
@@ -105,11 +105,20 @@ class RNN(nn.Module):
                 net = frames[:, t]
             else:                             # 12~23 (Predicted frames)
                 time_diff = t - self.configs.input_length
-                net = mask_true[:, time_diff] * frames[:, t] + (1 - mask_true[:, time_diff]) * x_gen
+                #net = mask_true[:, time_diff] * frames[:, t] + (1 - mask_true[:, time_diff]) * x_gen
+                channel = int(frames.shape[2] // (self.configs.in_channel / self.configs.out_channel)) # (128*3) // (3 / 1) = 128
+                """
+                print(mask_true.shape, mask_true[:, time_diff, :channel].shape)
+                print(frames.shape, frames[:, t, :channel].shape)
+                print(x_gen.shape)
+                print(channel)
+                """
+                net = mask_true[:, time_diff, :channel] * frames[:, t, :channel] + (1 - mask_true[:, time_diff, :channel]) * x_gen
             frames_feature = net
             frames_feature_encoded = []
             
             # エンコーダーをスタック
+            # tに合わせてエンコーダーの形を変える必要がある
             for i in range(len(self.encoders)):
                 frames_feature = self.encoders[i](frames_feature)
                 frames_feature_encoded.append(frames_feature)
