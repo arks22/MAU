@@ -12,6 +12,7 @@ class RNN(nn.Module):
         self.out_frame_channel = configs.patch_size * configs.patch_size * configs.out_channel
         self.num_layers = num_layers
         self.num_hidden = num_hidden
+    
         self.tau = configs.tau
         self.cell_mode = configs.cell_mode
         self.states = ['recall', 'normal']
@@ -28,14 +29,13 @@ class RNN(nn.Module):
             cell_list.append(MAUCell(num_hidden[i-1], num_hidden[i], height, width, configs.filter_size, configs.stride, self.tau, self.cell_mode))
         self.cell_list = nn.ModuleList(cell_list)
 
-        # Encoder
+        # Encoder(0~12)
         n = int(math.log2(configs.sr_size)) # 2
         encoders = []
         encoder = nn.Sequential()
         encoder.add_module(name='encoder_t_conv{0}'.format(-1), module=nn.Conv2d(in_channels=self.frame_channel, out_channels=self.num_hidden[0], stride=1, padding=0, kernel_size=1))
         encoder.add_module(name='relu_t_{0}'.format(-1), module=nn.LeakyReLU(0.2))
         encoders.append(encoder)
-
         for i in range(n):
             encoder = nn.Sequential()
             encoder.add_module(name='encoder_t{0}'.format(i), module=nn.Conv2d(in_channels=self.num_hidden[0], out_channels=self.num_hidden[0], stride=(2, 2), padding=(1, 1), kernel_size=(3, 3) ))
@@ -43,7 +43,9 @@ class RNN(nn.Module):
             encoders.append(encoder)
 
         self.encoders = nn.ModuleList(encoders)
-
+        
+        
+        
         # Decoder
         decoders = []
         for i in range(n - 1):
@@ -60,8 +62,8 @@ class RNN(nn.Module):
             decoders.append(decoder)
         self.decoders = nn.ModuleList(decoders)
 
-        #self.srcnn = nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
-        self.srcnn = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
+        self.srcnn = nn.Conv2d(self.num_hidden[-1], self.frame_channel, kernel_size=1, stride=1, padding=0)
+        #self.srcnn_out = nn.Conv2d(self.num_hidden[-1], self.out_frame_channel, kernel_size=1, stride=1, padding=0)
         #self.merge = nn.Conv2d(self.num_hidden[-1] * 2, self.num_hidden[-1], kernel_size=1, stride=1, padding=0)
         #self.conv_last_sr = nn.Conv2d(self.frame_channel * 2, self.frame_channel, kernel_size=1, stride=1, padding=0)
 
@@ -120,7 +122,7 @@ class RNN(nn.Module):
             # エンコーダーをスタック
             # tに合わせてエンコーダーの形を変える必要がある
             for i in range(len(self.encoders)):
-                frames_feature = self.encoders[i](frames_feature)
+                frames_feature = self.encoders[i](frames_feature) #エンコーダー
                 frames_feature_encoded.append(frames_feature)
 
             if t == 0:
@@ -128,8 +130,8 @@ class RNN(nn.Module):
                     zeros = torch.zeros([batch_size, self.num_hidden[i], height, width]).to(self.configs.device)
                     T_t.append(zeros)
 
-            S_t = frames_feature
             # num_layersで指定した階層分MAUをスタック
+            S_t = frames_feature
             for k in range(self.num_layers):
                 T_att = torch.stack(T_pre[k][-self.tau:], dim=0)
                 S_att = torch.stack(S_pre[k][-self.tau:], dim=0)
@@ -139,7 +141,6 @@ class RNN(nn.Module):
             out = S_t
 
             # デコーダーをスタック
-            frames_feature_decoded = []
             for i in range(len(self.decoders)):
                 out = self.decoders[i](out)
                 if self.configs.model_mode == 'recall':

@@ -30,7 +30,7 @@ def configs(args):
     if args.lr                     == None : args.lr                      = 5e-4
     if args.lr_decay               == None : args.lr_decay                = 0.90
     if args.delay_interval         == None : args.delay_interval          = 100000
-    if args.batch_size             == None : args.batch_size              = 4 
+    if args.batch_size             == None : args.batch_size              = 2 
     if args.max_epoches            == None : args.max_epoches             = 100
     if args.sample_interval        == None : args.sample_interval         = 5
     if args.num_save_samples       == None : args.num_save_samples        = 10

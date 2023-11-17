@@ -62,8 +62,6 @@ def schedule_sampling(args, eta, itr):
 # トレーニング
 def train_wrapper(args, model):
     begin = 0
-    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-    #meminfo_begin = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
     if args.pretrained_model:
         model.load(args.pretrained_model)
@@ -83,33 +81,28 @@ def train_wrapper(args, model):
         print(f"------------- epoch: {epoch} / {args.max_epoches} ----------------")
         print(f"Train with {train_size}  batch")
         time_epoch_start = time.time() 
-        l1_list, l2_list = [], []
-
+        train_loss_list = [] 
 
         with tqdm(total=train_size, desc="Train", leave=False) as pbar:
             for ims in train_input_handle:
                 #if itr > 3: break ############ DEBUG ##############
                 eta, real_input_flag = schedule_sampling(args, eta, itr)
-                loss = list(trainer.train(model, ims, real_input_flag, args, itr))
+                train_loss = trainer.train(model, ims, real_input_flag, args, itr).item()
 
-                pbar.set_postfix({"L2 Loss": loss[1]})
-                l1_list.append(loss[0].item())
-                l2_list.append(loss[1].item())
+                pbar.set_postfix({'loss': train_loss})
+                train_loss_list.append(train_loss)
                 pbar.update()
                 itr += 1
                 
         trainer.test(model, val_input_handle, args, epoch, TIMESTAMP, True)
 
-        with open(os.path.join(gen_path, 'results.json'), 'r') as f:
+        with open(os.path.join(gen_path, 'results.json'), 'a+') as f:
             result_json = json.load(f)
-            result_json['valid'][epoch-1]['summary']['l1loss'] = sum(l1_list) / len(l1_list)
-            result_json['valid'][epoch-1]['summary']['l2loss'] = sum(l2_list) / len(l2_list)
-
-
-        with open(os.path.join(gen_path, 'results.json'), 'w') as f:
+            result_json['valid'][epoch-1]['summary']['train_loss'] = sum(train_loss_list) / len(train_loss_list)
             json.dump(result_json, f, indent=4)
 
         plot_loss(args, TIMESTAMP, train_size)
+
         model.save(TIMESTAMP, itr)
         time_epoch = round((time.time() - time_epoch_start) / 60, 3)
         pred_finish_time = time_epoch * (args.max_epoches - epoch) / 60

@@ -4,21 +4,15 @@ import json
 import os
 
 def plot_loss(args, timestamp, train_size, finish_time=0):
-    l1loss = []
-    l2loss = []
-    mse = []
-    psnr = []
-    ssim = []
-    lpips = []
+    train_loss, valid_loss, psnr, ssim, lpips = [], [], [], [], []
 
     gen_path = os.path.join(args.gen_frm_dir, timestamp)
 
     with open(os.path.join(gen_path, 'results.json'), 'r') as f:
         valid_results = json.load(f)['valid']
         for result in valid_results:
-            l1loss.append(result['summary']['l1loss'])
-            l2loss.append(result['summary']['l2loss'])
-            mse.append(result['summary']['mse_avg'])
+            train_loss.append(result['summary']['train_loss'])
+            valid_loss.append(result['summary']['mse_avg'])
             psnr.append(result['summary']['psnr_avg'])
             ssim.append(result['summary']['ssim_avg'])
             lpips.append(result['summary']['lpips_avg'])
@@ -33,8 +27,8 @@ def plot_loss(args, timestamp, train_size, finish_time=0):
     ax.append(fig.add_subplot(gs[2, 1]))
     ax.append(fig.add_subplot(gs[1, 2]))
 
-    ax[1].plot(l2loss, color='b', lw=0.75, label='train L2_loss')
-    ax[2].plot(mse, color='g', lw=0.75, label='valid mse')
+    ax[1].plot(train_loss, color='b', lw=0.75, label='train loss (MSE)')
+    ax[2].plot(valid_loss, color='g', lw=0.75, label='valid loss (MSE)')
     ax[3].plot(psnr, color='y', lw=0.75, label='valid psnr')
     ax[4].plot(ssim, color='m', lw=0.75, label='valid ssim')
     ax[5].plot(lpips, color='c', lw=0.75, label='valid lpips')

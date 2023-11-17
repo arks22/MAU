@@ -16,10 +16,9 @@ class Model(object):
         self.num_layers = configs.num_layers
 
         networks_map = { 'mau': RNN.RNN }
-        num_hidden = []
-
+        num_hidden_in, num_hidden_out = [], []
         # MAUセルの深さに合わせてCNNのチャンネル数を設定
-        num_hidden = [configs.num_hidden for i in range(configs.num_layers)] #[ 64, * 16]
+        num_hidden = [configs.num_hidden * configs.in_channel  for i in range(configs.num_layers)] #[ 64, * 16]
 
         self.num_hidden = num_hidden
         if configs.model_name in networks_map:
@@ -58,17 +57,15 @@ class Model(object):
         ground_truth = frames_tensor
 
         self.optimizer.zero_grad()
-        loss_l1 = self.L1_loss(next_frames, ground_truth[:, 1:])
-        loss_l2 = self.MSE_criterion(next_frames, ground_truth[:, 1:])
-        loss_gen = loss_l2
-        loss_gen.backward()
-        self.optimizer.step()
+        loss_mse = self.MSE_criterion(next_frames, ground_truth[:, 1:])
+        loss_mse.backward() # パラメータ更新
+        self.optimizer.step() 
 
         if itr >= self.configs.sampling_stop_iter and itr % self.configs.delay_interval == 0:
-            self.scheduler.step()
+            self.scheduler.step() # 学習率の更新
             print('Lr decay to {:.8f}'.format(self.optimizer.param_groups[0]['lr']))
 
-        return next_frames, loss_l1.detach().cpu().numpy(), loss_l2.detach().cpu().numpy()
+        return next_frames, loss_mse.detach().cpu().numpy()
 
     def test(self, frames, mask):
         self.network.eval()

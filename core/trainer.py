@@ -11,8 +11,8 @@ import lpips
 
 
 def train(model, ims, real_input_flag, configs, itr):
-    _, loss_l1, loss_l2 = model.train(ims, real_input_flag, itr)
-    return np.round(loss_l1, 6), np.round(loss_l2, 6)
+    _, loss_mse = model.train(ims, real_input_flag, itr)
+    return np.round(loss_mse, 6)
 
 
 def test(model, input_handle, configs, epoch, timestamp, is_valid):
