@@ -85,7 +85,7 @@ def train_wrapper(args, model):
 
         with tqdm(total=train_size, desc="Train", leave=False) as pbar:
             for ims in train_input_handle:
-                #if itr > 3: break ############ DEBUG ##############
+                if itr > 0: break ############ DEBUG ##############
                 eta, real_input_flag = schedule_sampling(args, eta, itr)
                 train_loss = trainer.train(model, ims, real_input_flag, args, itr).item()
 
@@ -96,10 +96,14 @@ def train_wrapper(args, model):
                 
         trainer.test(model, val_input_handle, args, epoch, TIMESTAMP, True)
 
-        with open(os.path.join(gen_path, 'results.json'), 'a+') as f:
+        json_path = os.path.join(gen_path, 'results.json')
+        with open(json_path, 'r') as f:
             result_json = json.load(f)
-            result_json['valid'][epoch-1]['summary']['train_loss'] = sum(train_loss_list) / len(train_loss_list)
-            json.dump(result_json, f, indent=4)
+
+        result_json['valid'][epoch-1]['summary']['train_loss'] = sum(train_loss_list) / len(train_loss_list)
+        
+        with open(json_path, 'w') as file:
+            json.dump(result_json, file, indent=4)
 
         plot_loss(args, TIMESTAMP, train_size)
 
